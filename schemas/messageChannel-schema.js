@@ -1,13 +1,13 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const reqString = {
     type: String,
-    required: true
-}
+    required: true,
+};
 
-const messageChannelSchema = mongoose.Schema({
-    _id: reqString, //bot channel id
-    channelID: reqString, //message channel id
-})
+const MessageChannelSchema = mongoose.Schema({
+    _id: reqString, // bot channel id
+    channelID: reqString, // message channel id
+});
 
-module.exports = mongoose.model('messageChannel-info', messageChannelSchema)
+module.exports = mongoose.model('messageChannel-info', MessageChannelSchema);
