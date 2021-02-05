@@ -1,5 +1,0 @@
-{
-    "token": "[Enter your token here]",
-    "prefix": "[Prefix other than !]",
-    "mongoPath": "mongodb+srv://MissMuffinman:C6NOBZENh0r9jEFj@mongodb-logbook.cqhjp.mongodb.net/[Put name of database HERE]?retryWrites=true&w=majority"
-}
