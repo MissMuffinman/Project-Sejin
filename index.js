@@ -12,7 +12,7 @@ client.once('ready', async () => {
 
     commands(client) 
     
-    let activities = [`BE`, `BTS`, `BA memes`   ],i = 0;
+    let activities = [`BE`, `BTS`, `BA memes`],i = 0;
     setInterval(() => client.user.setActivity(`${activities[i++ %  activities.length]}`,  
                     {type:"STREAMING",url:"https://www.youtube.com/watch?v=-5q5mZbe3V8"  }), 10000)       
 });

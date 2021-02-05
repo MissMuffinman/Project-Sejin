@@ -13,10 +13,14 @@ const number = {
         message: '{VALUE} is not an integer value'
     }
 }
+const map = {
+    type: Map,
+    required: true
+}
 
 const absentBookSchema = mongoose.Schema({
     _id: reqString,
-    classCode: reqString,
+    classCode: map,
     absentCount: number
 })
 

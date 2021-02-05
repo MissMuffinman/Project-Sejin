@@ -256,7 +256,7 @@ module.exports = (client) => {
         //maplist = m.role - get(room) ???
         //for x of maplist ??
         // create a database log that finds id and updates the absents to ++
-        //make a list who missed class with amount of absents next to their name
+        //make a map who missed class with amount of absents next to their name
         //print list
     })
 
@@ -279,32 +279,32 @@ module.exports = (client) => {
 
         let idata = icache[cid]
 
-        if (!idata) {
-            console.log('FETCHING FROM DATABASE')
 
-            await mongo().then(async (mongoose) => {
-                try {
-                    const output = await messageChannelSchema.findOneAndUpdate({
-                        _id: cid
-                    }, {
-                        _id: cid,
-                        channelID: chanID
-                    }, {
-                        upsert: true
-                    })
-                    console.log(output.channelID)
-                    icache[cid] = idata = [output._id, output.channelID]
-                } finally {
-                    mongoose.connection.close()
-                }
-            })
-        }
+        console.log('FETCHING FROM DATABASE')
+
+        await mongo().then(async (mongoose) => {
+            try {
+                const output = await messageChannelSchema.findOneAndUpdate({
+                    _id: cid
+                }, {
+                    _id: cid,
+                    channelID: chanID
+                }, {
+                    upsert: true
+                })
+                console.log(output.channelID)
+                icache[cid] = idata = [output._id, output.channelID]
+            } finally {
+                mongoose.connection.close()
+            }
+        })
+
         message.channel.send("You set the message channel to be: " + chanID)
     })
 
     command(client, 'help', message => {
         if (message.author.bot) return
-        message.channel.send("Hello my name is Sejin.\nI see you need assistance. Here is set-by-step on how to use me.\n\n1. setMessageChannel [channelID]: This sets the message channel if Logbook doesn't reply try send the command again.\n\n2. addcc [roleID] [VoiceChannelID] [6 digital/letter class code ######] [Title (no spaces)] [img url]: This command adds a class to the logbook.\n\n3. log [Class code] [Description]: This command logs who attended class in the Voice channel that was set-up in addcc.\n\nUseful commands:\nfindcc [RoleID]: This command gives you the class code.\nhelp: Sends help.\n")
+        message.channel.send("Hello my name is Sejin.\nI see you need assistance. Here is step-by-step on how to use me.\n\n1. setMessageChannel [channelID]: This sets the message channel if Logbook doesn't reply try send the command again.\n\n2. addcc [roleID] [VoiceChannelID] [6 digital/letter class code ######] [Title (no spaces)] [img url]: This command adds a class to the logbook.\n\n3. log [Class code] [Description]: This command logs who attended class in the Voice channel that was set-up in addcc.\n\nUseful commands:\nfindcc [RoleID]: This command gives you the class code.\nhelp: Sends help.\n")
     })
 
     function getMapSize(x) {
