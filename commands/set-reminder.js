@@ -1,3 +1,5 @@
+const { DateTime } = require('luxon');
+
 module.exports = {
     name: 'setReminder',
     description: 'Set up reminder',
@@ -7,22 +9,43 @@ module.exports = {
             return message.reply('Please enter 1. channelID 2. Time for reminder 3. Reminder message');
         }
 
-        const [channelId, deadline, reminderMessage] = args;
+        const [channelId, rawDeadlineInput, rawReminderMessage] = args;
 
         const discordClient = message.client;
-        const channel = discordClient.channels.cache.get(channelId);
+        const currentChannel = discordClient.channels.cache.get(message.channel.id);
+        const targetChannel = discordClient.channels.cache.get(channelId);
+        const deadlineInput = rawDeadlineInput.replace(/['"]+/g, '');
+        const reminderMessage = rawReminderMessage.replace(/['"]+/g, '');
 
-        /**
-         * 1. Convert deadline from CST to UTC
-         * 2. Validate deadline is valid (in future) by comparing with current time
-         * 3. Use https://nodejs.org/api/timers.html#timers_settimeout_callback_delay_args to setTimeout for future reminders.
-         *  a. One for 1 day before deadline
-         *  b. One for 3 hour before deadline
-         *  c. One for 30 mins before deadline
-         */
+        const deadline = DateTime.fromSQL(deadlineInput, { zone: 'America/Chicago' });
+        const deadlineInUTC = deadline.toUTC();
+        const currentTimeUTC = DateTime.utc();
 
-        const timeRemaining = Date.parse(deadline) - Date.parse(new Date());
+        if (currentTimeUTC > deadlineInUTC) {
+            return message.reply('Deadline is in past. Invalid datetime provided.');
+        }
 
-        channel.send(reminderMessage + deadline);
+        //const thirtyMinsBeforeDeadlineUTC = deadlineInUTC.minus({ minutes: 30 });
+        const oneHourBeforeDeadlineUTC = deadlineInUTC.minus({ hours: 1 });
+        const oneHourBeforeDeadlineCST = oneHourBeforeDeadlineUTC.setZone('America/Chicago');
+
+        //const oneDayBeforeDeadlineUTC = deadlineInUTC.minus({ days: 1 });
+        //this.sendReminder(thirtyMinsBeforeDeadlineUTC, channel, reminderMessage);
+        this.sendReminder(oneHourBeforeDeadlineUTC, targetChannel, reminderMessage);
+        //this.sendReminder(oneDayBeforeDeadlineUTC, channel, reminderMessage);
+
+        currentChannel.send('Deadline: ' + deadline.toSQLDate() + ' ' + deadline.hour + ':' + deadline.minute);
+        currentChannel.send('Reminder set to one hour before deadline: ' + oneHourBeforeDeadlineCST.toSQLDate() + ' ' + oneHourBeforeDeadlineCST.hour + ':' + oneHourBeforeDeadlineCST.minute);
+        currentChannel.send('I will send reminder ' + oneHourBeforeDeadlineCST.toRelative() + ' in channel : ' + targetChannel.name);
     },
+    
+    sendReminder: function(timeBeforeDeadline, channel, reminderMessage){
+        const currentTimeUTC = DateTime.utc();
+
+        const delay = timeBeforeDeadline.toMillis() - currentTimeUTC.toMillis();
+        // TODO: Maybe can use Duration
+        if(delay > 0 ) {
+            setTimeout(function () {channel.send(reminderMessage);}, delay, channel, reminderMessage);
+        }
+    }
 };
