@@ -1,6 +1,7 @@
 const { DateTime } = require('luxon');
 
 module.exports = {
+    // Name of the command. To run this command you have to input !setReminder
     name: 'setReminder',
     description: 'Set up reminder',
     args: true,
@@ -18,6 +19,10 @@ module.exports = {
         const reminderMessage = rawReminderMessage.replace(/['"]+/g, '');
 
         const deadline = DateTime.fromSQL(deadlineInput, { zone: 'America/Chicago' });
+        if (!deadline.isValid) {
+            return message.reply('Invalid deadline provided. Please enter deadline in correct format. YYYY-MM-DD HH:MM');
+        }
+
         const deadlineInUTC = deadline.toUTC();
         const currentTimeUTC = DateTime.utc();
 
@@ -34,9 +39,15 @@ module.exports = {
         this.sendReminder(oneHourBeforeDeadlineUTC, targetChannel, reminderMessage);
         //this.sendReminder(oneDayBeforeDeadlineUTC, channel, reminderMessage);
 
-        currentChannel.send('Deadline: ' + deadline.toSQLDate() + ' ' + deadline.hour + ':' + deadline.minute);
-        currentChannel.send('Reminder set to one hour before deadline: ' + oneHourBeforeDeadlineCST.toSQLDate() + ' ' + oneHourBeforeDeadlineCST.hour + ':' + oneHourBeforeDeadlineCST.minute);
-        currentChannel.send('I will send reminder ' + oneHourBeforeDeadlineCST.toRelative() + ' in channel : ' + targetChannel.name);
+        // TODO: Consolidate into single message
+
+        const deadlineMessage = 'Deadline: ' + deadline.toSQLDate() + ' ' + deadline.hour + ':' + deadline.minute;
+        const reminderHourBeforeMessage = 'Reminder set to one hour before deadline: ' + oneHourBeforeDeadlineCST.toSQLDate() + ' ' + oneHourBeforeDeadlineCST.hour + ':' + oneHourBeforeDeadlineCST.minute;
+        const reminderPromise = 'I will send reminder ' + oneHourBeforeDeadlineCST.toRelative() + ' in channel : ' + targetChannel.name;
+        const newLine = '\n';
+
+        const fullMessage = deadlineMessage.concat(newLine, reminderHourBeforeMessage, newLine, reminderPromise);
+        currentChannel.send(fullMessage);
     },
     
     sendReminder: function(timeBeforeDeadline, channel, reminderMessage){
