@@ -1,20 +1,40 @@
-const Discord = require('discord.js')
-const client = new Discord.Client()
+const fs = require('fs');
+const Discord = require('discord.js');
+const { prefix, token } = require('./config.json');
 
-const config = require('./config.json')
-const mongo = require('./mongo')
-const commands = require('./commands')
+const client = new Discord.Client();
+client.commands = new Discord.Collection();
 
-const prefix = (config.prefix)
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
-client.once('ready', async () => {
-    console.log('LogBook is online!')
+for (const file of commandFiles) {
+    const command = require(`./commands/${file}`);
+    client.commands.set(command.name, command);
+}
 
-    commands(client) 
-    
-    let activities = [`BE`, `BTS`, `BA memes`],i = 0;
-    setInterval(() => client.user.setActivity(`${activities[i++ %  activities.length]}`,  
-                    {type:"STREAMING",url:"https://www.youtube.com/watch?v=-5q5mZbe3V8"  }), 10000)       
+client.once('ready', () => {
+    console.log('Manager Sejin is online!');
+
+    const activities = ['BE', 'BTS', 'BA memes' ];
+    let i = 0;
+    setInterval(() => client.user.setActivity(`${activities[i++ % activities.length]}`,
+        { type:'STREAMING', url:'https://www.youtube.com/watch?v=-5q5mZbe3V8' }), 10000);
 });
 
-client.login(config.token)
+client.on('message', message => {
+    if (!message.content.startsWith(prefix) || message.author.bot) return;
+
+    const args = message.content.slice(prefix.length).trim().split(/ +/);
+    const command = args.shift();
+    if (!client.commands.has(command)) return;
+
+    try {
+        client.commands.get(command).execute(message, args);
+    }
+    catch (error) {
+        console.error(error);
+        message.reply('There was an error trying to execute that command!' + command.name);
+    }
+});
+
+client.login(token);
