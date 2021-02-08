@@ -41,8 +41,8 @@ module.exports = {
 
         // TODO: Consolidate into single message
 
-        const deadlineMessage = 'Deadline: ' + deadline.toSQLDate() + ' ' + deadline.hour + ':' + deadline.minute;
-        const reminderHourBeforeMessage = 'Reminder set to one hour before deadline: ' + oneHourBeforeDeadlineCST.toSQLDate() + ' ' + oneHourBeforeDeadlineCST.hour + ':' + oneHourBeforeDeadlineCST.minute;
+        const deadlineMessage = 'Deadline: ' + deadline.toLocaleString(DateTime.DATETIME_SHORT);
+        const reminderHourBeforeMessage = 'Reminder set to one hour before deadline: ' + oneHourBeforeDeadlineCST.toLocaleString(DateTime.DATETIME_SHORT);
         const reminderPromise = 'I will send reminder ' + oneHourBeforeDeadlineCST.toRelative() + ' in channel : ' + targetChannel.name;
         const newLine = '\n';
 
