@@ -8,7 +8,6 @@ const path = require('path')
 const config = require('./config.json')
 const HomeworkDB = require('./database/homework-db')
 const { db } = require('./schemas/classcodes-schema')
-const homeworkSchema = require('./schemas/homework-schema')
 const token = (config.token)
 
 client.once('ready', async () => {
@@ -56,26 +55,9 @@ client.on('raw', async (event) => {
     date.getUTCHours() - 5,
     date.getUTCMinutes())
   var CSTTimestamp = Date.parse(CSTDay);
-  /*hwdb = new HomeworkDB();
-  hwdb.write(data.user_id, data.channel_id, CSTDay);*/
 
-  await mongo().then(async (mongoose) => {
-    console.log('INSERTING DATA INTO DATABASE')
-    try {
-        await homeworkSchema.findOneAndUpdate({
-            _id: data.message_id
-        }, {
-            _id: data.message_id,
-            channelID: data.channel_id,
-            studentID: studentID,
-            timestamp: CSTTimestamp
-        }, {
-            upsert: true
-        })
-    } finally {
-        mongoose.connection.close()
-    }
-})
+  console.log('INSERTING DATA INTO DATABASE')
+  HomeworkDB.write(data.user_id, data.channel_id, CSTTimestamp);
 
 });
 

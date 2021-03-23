@@ -1,6 +1,5 @@
 const mongo = require('../mongo')
 const classCodesSchema = require('../schemas/classcodes-schema')
-const homeworkSchema = require('../schemas/homework-schema')
 const messageChannelSchema = require('../schemas/messageChannel-schema')
 const HomeworkDB = require('../database/homework-db')
 const LogMessage = require('../common/logbook-message')
@@ -82,23 +81,8 @@ module.exports = {
         const img = riddata[3]
         const type = "hw";
 
-        await mongo().then(async (mongoose) => {
-            try {
-                const output = await homeworkSchema.find({ 
-                    timestamp: {
-                        $gte: Date.parse(startDay),
-                        $lt: Date.parse(endDay)
-                    },
-                    channelID: room
-                })
-                studentsIDs = output.map(hw => hw.studentID);
-            } finally {
-                mongoose.connection.close()
-            }
 
-        })
-        // Using AWS DB
-        // studentsIDs = read(channel.id, startDay, endDay); 
+        studentsIDs = HomeworkDB.read(room, startDay, endDay); 
 
         console.log('DATA FETCHED')
         if (studentsIDs.length == 0) {
