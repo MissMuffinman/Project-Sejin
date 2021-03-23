@@ -1,6 +1,6 @@
+const AWS = require('aws-sdk');
 
-module.exports = class HomeworkDB {
-    read(channelID, startDate, endDate) {
+    function read(channelID, startDate, endDate) {
 
         var path = require('path');
         var pathToJson = path.resolve(__dirname, '../../aws_config.json');
@@ -32,9 +32,9 @@ module.exports = class HomeworkDB {
           });
     }
   
-    write(studentID, channelID, timestamp) {
+    function write(studentID, channelID, timestamp) {
         var path = require('path');
-        var pathToJson = path.resolve(__dirname, '../../aws_config.json');
+        var pathToJson = path.resolve(__dirname, '../aws_config.json');
         AWS.config.loadFromPath(pathToJson);
 
         const ddb = new AWS.DynamoDB();
@@ -56,4 +56,6 @@ module.exports = class HomeworkDB {
         }
         });
     }
-  };
+
+    module.exports.read = read;
+    module.exports.write = write;
