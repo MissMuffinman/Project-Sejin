@@ -8,6 +8,8 @@ const AWS = require('aws-sdk');
 
         const ddb = new AWS.DynamoDB();
 
+        var studentsIDs = [];
+
         var params = {
             ExpressionAttributeValues: {
               ':s': {S: startDate},
@@ -27,9 +29,11 @@ const AWS = require('aws-sdk');
               //console.log("Success", data.Items);
               data.Items.forEach(function(element, index, array) {
                 console.log(element.studentID.S + " (" + element.classID.S + ")");
+                studentsIDs.push(element.studentID.S);
               });
             }
           });
+      return studentsIDs;
     }
   
     function write(studentID, channelID, timestamp) {
