@@ -1,65 +1,68 @@
-const AWS = require('aws-sdk');
+const AWS = require("aws-sdk");
 
-    function read(channelID, startDate, endDate) {
+function read(channelID, startDate, endDate) {
+  var path = require("path");
+  var pathToJson = path.resolve(__dirname, "../aws_config.json");
+  AWS.config.loadFromPath(pathToJson);
 
-        var path = require('path');
-        var pathToJson = path.resolve(__dirname, '../../aws_config.json');
-        AWS.config.loadFromPath(pathToJson);
+  const ddb = new AWS.DynamoDB();
 
-        const ddb = new AWS.DynamoDB();
+  var studentsIDs = [];
 
-        var studentsIDs = [];
+  var params = {
+    ExpressionAttributeValues: {
+      ":s": { S: startDate },
+      ":e": { S: endDate },
+      ":class": { S: channelID },
+    },
+    KeyConditionExpression: "channelID = :class",
+    ProjectionExpression: "studentID",
+    FilterExpression: "#timestamp BETWEEN :s and :e",
+    ExpressionAttributeNames: {
+      "#timestamp": "timestamp",
+    },
+    TableName: "BA-Homework",
+  };
 
-        var params = {
-            ExpressionAttributeValues: {
-              ':s': {S: startDate},
-              ':e' : {S: endDate},
-              ':class' : {S: channelID}
-            },
-            KeyConditionExpression: 'channelID = :class',
-            ProjectionExpression: 'studentID',
-            FilterExpression: 'timestamp BETWEEN :s and :e',
-            TableName: 'BA-Homework'
-          };
-          
-          ddb.query(params, function(err, data) {
-            if (err) {
-              console.log("Error", err);
-            } else {
-              //console.log("Success", data.Items);
-              data.Items.forEach(function(element, index, array) {
-                console.log(element.studentID.S + " (" + element.classID.S + ")");
-                studentsIDs.push(element.studentID.S);
-              });
-            }
-          });
-      return studentsIDs;
+  var students = [];
+  ddb.query(params, function (err, data) {
+    if (err) {
+      console.log("Error", err);
+    } else {
+      //console.log("Success", data.Items);
+      data.Items.forEach(function (element) {
+        studentsIDs.push(element.studentID.S);
+        //console.log(element.studentID.S);
+      });
     }
-  
-    function write(studentID, channelID, timestamp) {
-        var path = require('path');
-        var pathToJson = path.resolve(__dirname, '../aws_config.json');
-        AWS.config.loadFromPath(pathToJson);
+  });
+  return studentsIDs;
+}
 
-        const ddb = new AWS.DynamoDB();
+function write(studentID, channelID, timestamp) {
+  var path = require("path");
+  var pathToJson = path.resolve(__dirname, "../aws_config.json");
+  AWS.config.loadFromPath(pathToJson);
 
-        var params = {
-            TableName: 'BA-Homework',
-            Item: {
-              'studentID' : {S: studentID},
-              'channelID' : {S: channelID},
-              'timestamp' : {S: timestamp}
-            }
-          };
+  const ddb = new AWS.DynamoDB();
 
-        ddb.putItem(params, function(err, data) {
-        if (err) {
-            console.log("Error", err);
-        } else {
-            console.log("Success", data);
-        }
-        });
+  var params = {
+    TableName: "BA-Homework",
+    Item: {
+      studentID: { S: studentID },
+      channelID: { S: channelID },
+      timestamp: { S: timestamp },
+    },
+  };
+
+  ddb.putItem(params, function (err, data) {
+    if (err) {
+      console.log("Error", err);
+    } else {
+      console.log("Success", data);
     }
+  });
+}
 
-    module.exports.read = read;
-    module.exports.write = write;
+module.exports.read = read;
+module.exports.write = write;
