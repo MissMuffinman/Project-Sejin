@@ -24,7 +24,6 @@ function read(channelID, startDate, endDate) {
     TableName: "BA-Homework",
   };
 
-  var students = [];
   ddb.query(params, function (err, data) {
     if (err) {
       console.log("Error", err);

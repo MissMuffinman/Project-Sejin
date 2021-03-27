@@ -2,6 +2,7 @@ const mongo = require('../mongo')
 const classCodesSchema = require('../schemas/classcodes-schema')
 const messageChannelSchema = require('../schemas/messageChannel-schema')
 const HomeworkDB = require('../database/homework-db')
+const ClassDB = require('../database/class-db')
 const LogMessage = require('../common/logbook-message')
 const DateValidator = require('../common/logbook-date') 
  
@@ -51,7 +52,11 @@ module.exports = {
 
         if (ccid.length < 7) {
             console.log('FETCHING FROM DATABASE')
-            await mongo().then(async (mongoose) => {
+
+            const result = ClassDB.read(ccid);
+            ccache = [result._id, result.channelID, result.title, result.image_url]
+
+            /*await mongo().then(async (mongoose) => {
                 try {
                     const result = await classCodesSchema.findOne({ classCode: ccid })
                     ccache = [result._id, result.channelID, result.title, result.image_url]
@@ -59,10 +64,10 @@ module.exports = {
                     mongoose.connection.close()
                 }
 
-            })
+            })*/
         }
 
-        await mongo().then(async (mongoose) => {
+        /*await mongo().then(async (mongoose) => {
             try {
                 const output = await messageChannelSchema.findOne({ _id: channel.id })
                 cIDcache = [output.channelID]
@@ -70,7 +75,9 @@ module.exports = {
                 mongoose.connection.close()
             }
 
-        })
+        })*/
+
+        const cIDcache = "789621837512179722";
 
         let riddata = ccache
         let ciddata = cIDcache
