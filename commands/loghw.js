@@ -88,8 +88,7 @@ module.exports = {
         const img = riddata[3]
         const type = "hw";
 
-
-        studentsIDs = HomeworkDB.read(room, startDay, endDay); 
+        studentsIDs = HomeworkDB.read(room, startDay.getTime(), endDay.getTime()); 
 
         console.log('DATA FETCHED')
         if (studentsIDs.length == 0) {
