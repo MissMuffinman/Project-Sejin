@@ -57,7 +57,7 @@ client.on('raw', async (event) => {
   var CSTTimestamp = Date.parse(CSTDay);
 
   console.log('INSERTING DATA INTO DATABASE')
-  HomeworkDB.write(data.user_id, data.channel_id, CSTTimestamp);
+  HomeworkDB.write(data.user_id, data.channel_id, CSTTimestamp.toString());
 
 });
 
