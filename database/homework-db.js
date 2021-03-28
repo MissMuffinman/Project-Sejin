@@ -1,29 +1,37 @@
 const AWS = require("aws-sdk");
 
-function read(channelID, startDate, endDate) {
-  var path = require("path");
-  var pathToJson = path.resolve(__dirname, "../aws_config.json");
-  AWS.config.loadFromPath(pathToJson);
+async function read(channelID, startDate, endDate) {
+  try {
+    var path = require("path");
+    var pathToJson = path.resolve(__dirname, "../aws_config.json");
+    AWS.config.loadFromPath(pathToJson);
 
-  const ddb = new AWS.DynamoDB();
+    const ddb = new AWS.DynamoDB();
 
-  var studentsIDs = [];
+    //var studentsIDs = [];
 
-  var params = {
-    ExpressionAttributeValues: {
-      ":s": { S: startDate },
-      ":e": { S: endDate },
-      ":class": { S: channelID },
-    },
-    KeyConditionExpression: "channelID = :class",
-    ProjectionExpression: "studentID",
-    FilterExpression: "#timestamp BETWEEN :s and :e",
-    ExpressionAttributeNames: {
-      "#timestamp": "timestamp",
-    },
-    TableName: "BA-Homework",
-  };
+    //console.log(`channelID: ${channelID}`);
+    var params = {
+      ExpressionAttributeValues: {
+        ":s": { S: startDate },
+        ":e": { S: endDate },
+        ":class": { S: channelID },
+      },
+      KeyConditionExpression: "channelID = :class",
+      ProjectionExpression: "studentID",
+      FilterExpression: "#timestamp BETWEEN :s and :e",
+      ExpressionAttributeNames: {
+        "#timestamp": "timestamp",
+      },
+      TableName: "BA-Homework",
+    };
 
+    const result = await ddb.query(params).promise();
+    return result.Items;
+  } catch (error) {
+    console.log(error);
+  }
+  /*
   ddb.query(params, function (err, data) {
     if (err) {
       console.log("Error", err);
@@ -31,13 +39,16 @@ function read(channelID, startDate, endDate) {
       //console.log("Success", data.Items);
       data.Items.forEach(function (element) {
         studentsIDs.push(element.studentID.S);
-        //console.log(element.studentID.S);
+        console.log(element.studentID.S);
       });
+      return studentsIDs;
     }
   });
   return studentsIDs;
+  */
 }
 
+//TODO: Modify this to async
 function write(studentID, channelID, timestamp) {
   var path = require("path");
   var pathToJson = path.resolve(__dirname, "../aws_config.json");

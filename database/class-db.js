@@ -1,7 +1,6 @@
 const AWS = require("aws-sdk");
 
 async function read(classCode) {
-  let result;
   try {
     var path = require("path");
     var pathToJson = path.resolve(__dirname, "../aws_config.json");
@@ -9,8 +8,7 @@ async function read(classCode) {
 
     const ddb = new AWS.DynamoDB();
 
-    console.log(classCode);
-
+    //console.log(classCode);
     var params = {
       Key: {
         "classCode": {
@@ -20,13 +18,14 @@ async function read(classCode) {
       TableName: "BA-Class"
     };
     
-    result = await ddb.getItem(params).promise();
+    const result = await ddb.getItem(params).promise();
     //console.log(JSON.stringify(result));
+    return result.Item;
 
   } catch (error){
     console.log(error);
   }
-  return result.Item;
+  //return result.Item;
 }
 
 module.exports.read = read;

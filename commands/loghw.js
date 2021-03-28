@@ -53,9 +53,53 @@ module.exports = {
         if (ccid.length < 7) {
             console.log('FETCHING FROM DATABASE')
 
-            const result = ClassDB.read(ccid);
-            ccache = [result._id, result.channelID, result.title, result.image_url]
+        
+            ClassDB.read(ccid).then((result) => {
+              //console.log(`result's channelID: ${result.channelID.S}`);
+              ccache = [
+                result.assignedRole.S,
+                result.channelID.S,
+                result.title.S,
+                result.image_url.S,
+              ];
 
+              const cIDcache = "810242287891513384";
+
+              console.log(ccache[0]);
+              let riddata = ccache
+              //let ciddata = cIDcache
+              const cID = cIDcache
+              const assignedRole = riddata[0]
+              const room = riddata[1]
+              const title = riddata[2]
+              const img = riddata[3]
+              const type = "hw";
+      
+              HomeworkDB.read(room, JSON.stringify(startDay.getTime()), JSON.stringify(endDay.getTime()))
+              .then((result) => {
+                result.forEach(function (element) {
+                    studentsIDs.push(element.studentID.S);
+                    //console.log(element.studentID.S);
+                  });
+                  console.log('DATA FETCHED')
+                  if (studentsIDs.length == 0) {
+                      return message.reply("There was no homework submitted during this time period.")
+                  }
+          
+          
+                  console.log(title, assignedRole, room, desc, img)
+          
+          
+                  messageChannel = guild.channels.cache.get(cID);
+                  
+                  const logmessage = new LogMessage(messageChannel, assignedRole, room, title, desc, img, type);
+                  classSize = logmessage.getMapSize(studentsIDs);
+                  logmessage.sendLogBookMessage(studentsIDs, classSize);
+              });
+      
+
+            });
+            
             /*await mongo().then(async (mongoose) => {
                 try {
                     const result = await classCodesSchema.findOne({ classCode: ccid })
@@ -76,9 +120,10 @@ module.exports = {
             }
 
         })*/
-
+/*
         const cIDcache = "789621837512179722";
 
+        console.log(ccache[0]);
         let riddata = ccache
         let ciddata = cIDcache
         const cID = ciddata[0]
@@ -88,7 +133,7 @@ module.exports = {
         const img = riddata[3]
         const type = "hw";
 
-        studentsIDs = HomeworkDB.read(room, startDay.getTime(), endDay.getTime()); 
+        studentsIDs = HomeworkDB.read(room, JSON.stringify(startDay.getTime()), JSON.stringify(endDay.getTime())); 
 
         console.log('DATA FETCHED')
         if (studentsIDs.length == 0) {
@@ -104,5 +149,6 @@ module.exports = {
         const logmessage = new LogMessage(messageChannel, assignedRole, room, title, desc, img, type);
         classSize = logmessage.getMapSize(studentsIDs);
         logmessage.sendLogBookMessage(studentsIDs, classSize);
+        */
     }
 }
