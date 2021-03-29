@@ -1,5 +1,6 @@
 const mongo = require('../mongo')
 const messageChannelSchema = require('../schemas/messageChannel-schema')
+const messageChannelDB = require('../database/messageChannel-db')
 
 module.exports = {
     commands: 'setMessageChannel',
@@ -24,9 +25,10 @@ module.exports = {
 
         let idata = icache[cid]
 
-        console.log('FETCHING FROM DATABASE')
+        console.log('INSERTING DATA INTO DATABASE')
+        messageChannelDB.write(cid, chanID);
 
-        await mongo().then(async (mongoose) => {
+        /*await mongo().then(async (mongoose) => {
             try {
                 const output = await messageChannelSchema.findOneAndUpdate({
                     _id: cid
@@ -41,7 +43,7 @@ module.exports = {
             } finally {
                 mongoose.connection.close()
             }
-        })
+        })*/
 
         message.channel.send("You set the message channel to be: " + chanID)
     }
