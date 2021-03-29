@@ -8,17 +8,19 @@ async function read(id) {
     
         const ddb = new AWS.DynamoDB();
 
-        console.log(`its me the id ${id}`);
         var params = {
-            ExpressionAttributeValues: {
-                ":idNumber": { S: id },
-            },
-            KeyConditionExpression: "id = :idNumber",
-            TableName: "BA-Message-Channel",
+          Key: {
+            "id": {
+              "S": id
+            }
+          }, 
+          TableName: "BA-Message-Channel"
         };
-        const result = await ddb.query(params).promise();
+        
+        const result = await ddb.getItem(params).promise();
         return result.Item;
-    } catch (error) {
+    
+    } catch (error){
         console.log(error);
     }
 }
