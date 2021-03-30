@@ -28,4 +28,36 @@ async function read(classCode) {
   //return result.Item;
 }
 
+async function write(roleID, channelID, classCode, title, image_url) {
+  try {
+    var path = require("path");
+    var pathToJson = path.resolve(__dirname, "../aws_config.json");
+    AWS.config.loadFromPath(pathToJson);
+
+    const ddb = new AWS.DynamoDB();
+
+    var params = {
+        TableName: "BA-Class",
+        Item:{
+            classCode: {S: classCode},
+            roleID: {S: roleID},
+            channelID: { S: channelID },
+            title: {S: title},
+            image_url: {S: image_url},
+        }
+    };
+
+    ddb.putItem(params, function (err, data) {
+        if (err) {
+          console.log("Error", err);
+        } else {
+          console.log("Success", data);
+        }
+      })
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 module.exports.read = read;
+module.exports.write = write;
