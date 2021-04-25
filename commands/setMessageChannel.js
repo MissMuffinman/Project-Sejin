@@ -1,12 +1,8 @@
-const mongo = require('../mongo')
-const messageChannelSchema = require('../schemas/messageChannel-schema')
 const messageChannelDB = require('../database/messageChannel-db')
 
 module.exports = {
     commands: 'setMessageChannel',
     callback:  async (message) => {
-    
-        const icache = {}
 
         if (message.author.bot) return
         const { content, channel } = message
@@ -23,27 +19,8 @@ module.exports = {
         const chanID = args[0]
         console.log(chanID)
 
-        let idata = icache[cid]
-
         console.log('INSERTING DATA INTO DATABASE')
         messageChannelDB.write(cid, chanID);
-
-        /*await mongo().then(async (mongoose) => {
-            try {
-                const output = await messageChannelSchema.findOneAndUpdate({
-                    _id: cid
-                }, {
-                    _id: cid,
-                    channelID: chanID
-                }, {
-                    upsert: true
-                })
-                console.log(output.channelID)
-                icache[cid] = idata = [output._id, output.channelID]
-            } finally {
-                mongoose.connection.close()
-            }
-        })*/
 
         message.channel.send("You set the message channel to be: " + chanID)
     }

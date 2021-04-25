@@ -59,5 +59,34 @@ async function write(roleID, channelID, classCode, title, image_url) {
   }
 }
 
+async function find(roleID) {
+  try{
+    var path = require("path");
+    var pathToJson = path.resolve(__dirname, "../aws_config.json");
+    AWS.config.loadFromPath(pathToJson);
+
+    const ddb = new AWS.DynamoDB();
+
+    //console.log(classCode);
+    var params = {
+      Item: {
+        "roleID": {
+          "S": roleID
+        }
+      }, 
+      TableName: "BA-Class"
+    };
+  
+    const result = await ddb.getKey(params).promise();
+    //console.log(JSON.stringify(result));
+    return result.Key;
+
+  } catch (error) {
+    console.log(error);
+  }
+//return result.Item;
+}
+
 module.exports.read = read;
 module.exports.write = write;
+module.exports.find = find;

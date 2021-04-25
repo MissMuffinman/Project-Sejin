@@ -1,11 +1,9 @@
-const mongo = require('../mongo')
-const classCodesSchema = require('../schemas/classcodes-schema')
+const ClassDB = require('../database/class-db')
 
 
 module.exports = {
     commands: 'addcc',
     callback:  async (message) => {
-        const ncache = {}
 
         if (message.author.bot) return
 
@@ -21,34 +19,15 @@ module.exports = {
         }
 
         args.shift()
-        console.log(args[0])
-        _id = args[0]
-        classCode = args[2]
-        title = args[3]
-        image_url = [4]
+        rID = args[0]
+        cID = args[1]
+        cc = args[2]
+        classTitle = args[3]
+        url = args[4]
 
-        ncache[_id] = [classCode]
+        console.log('INSERTING DATA INTO DATABASE')
+        ClassDB.write(rID, cID, cc, classTitle, url)
 
-        await mongo().then(async (mongoose) => {
-            console.log('INSERTING DATA INTO DATABASE')
-            try {
-                await classCodesSchema.findOneAndUpdate({
-                    _id: args[0]
-                }, {
-                    _id: args[0],
-                    channelID: args[1],
-                    classCode: args[2],
-                    title: args[3],
-                    image_url: args[4]
-                }, {
-                    upsert: true
-                })
-            } finally {
-                mongoose.connection.close()
-            }
-        })
-
-        message.channel.send("You set " + args[2] + " to be the class code for <@&" + args[0] + ">\nThe class title is: " + args[3] + "\nThe class image is: " + args[4])
+        message.channel.send("You set " + cc + " to be the class code for <@&" + rID + ">\nThe class title is: " + classTitle + "\nThe class image is: " + url)
     }
 }
-

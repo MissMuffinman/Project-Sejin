@@ -1,6 +1,6 @@
-const mongo = require('../mongo')
-const classCodesSchema = require('../schemas/classcodes-schema')
-const messageChannelSchema = require('../schemas/messageChannel-schema')
+const ClassDB = require('../database/class-db')
+const LogMessage = require('../common/logbook-message')
+
 
 module.exports = {
     commands: 'log',
@@ -20,65 +20,19 @@ module.exports = {
         const ccid = args[0]
         const description = args.slice(1)
         const desc = description.join(' ')
-        var date = new Date();
-        var engDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-        var korDays = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
-        var monNum = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
-        var months = ['January', 'Febuary', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'Novemeber', 'December']
-        var meridian;
-        var cstDate = "";
 
-        //DST fix
-        var date = new Date(
-            date.getUTCFullYear(),
-            date.getUTCMonth(),
-            date.getUTCDate(),
-            date.getUTCHours() - 6,
-            date.getUTCMinutes())
-
-        meridian = (date.getHours() < 12) ? "AM" : "PM";
-        //CST date example: December 23, 2015 11:30 AM
-        cstDate = months[date.getMonth()]
-            + " "
-            + date.getDate()
-            + ", "
-            + date.getFullYear()
-            + " "
-            + date.getHours()
-            + ":"
-            + date.getMinutes()
-            + " "
-            + meridian;
-
-        console.log(cstDate)
-        console.log(desc)
-
-        var monthNum = monNum[date.getMonth()]
-        var monthName = months[date.getMonth()]
-        var engDay = engDays[date.getDay()]
-        var korDay = korDays[date.getDay()]
-
-        if (ccid.length < 7) {
-            console.log('FETCHING FROM DATABASE')
-            await mongo().then(async (mongoose) => {
-                try {
-                    const result = await classCodesSchema.findOne({ classCode: ccid })
-                    ccache = [result._id, result.channelID, result.title, result.image_url]
-                } finally {
-                    mongoose.connection.close()
-                }
-
-            })
+        if (ccid.length >= 7) {
+            return message.reply("Class Code should have 6 characters")
         }
 
-        await mongo().then(async (mongoose) => {
-            try {
-                const output = await messageChannelSchema.findOne({ _id: channel.id })
-                cIDcache = [output.channelID]
-            } finally {
-                mongoose.connection.close()
-            }
-
+        console.log('FETCHING FROM DATABASE')
+        ClassDB.read(ccid).then((result) => {
+            ccache = [
+                result.roleID.S,
+                result.channelID.S,
+                result.title.S,
+                result.image_url.S, 
+            ]
         })
 
         console.log('DATA FETCHED')
@@ -89,6 +43,7 @@ module.exports = {
         const room = riddata[1]
         const title = riddata[2]
         const img = riddata[3]
+        const type = "vc"
 
         console.log(title, assignedRole, room, korDay, desc, img)
 
@@ -99,43 +54,11 @@ module.exports = {
         console.log(names)
         list = mentionList(names)
 
+        console.log(title, assignedRole, room, desc, img)              
         messageChannel = guild.channels.cache.get(cID);
-
-        messageChannel.send("LOGBOOK: " + title +
-            "\n<@&" + assignedRole +
-            ">\n" + engDay + ", " + date.getDate() + " " + monthName + " " + date.getFullYear() +
-            "\n" + date.getFullYear() + "년 " + monthNum + "월 " + date.getDate() + "일 " + korDay +
-
-            "\n\n" + desc + "\n출석자 Attendees: ")
-
-
-        for (i = 0; i <= Math.ceil(classSize / 50); i++) {
-            List = list.slice(i * 50, i * 50 + 50).join(' ')
-            if (i < 1) {
-                messageChannel.send(List)
-            }
-            else if (getMapSize(List) > 0) {
-                messageChannel.send("cont.\n" + List)
-            }
-        }
-        messageChannel.send({ files: [img] })
+                                          
+        const logmessage = new LogMessage(messageChannel, assignedRole, room, title, desc, img, type);
+        classSize = logmessage.getMapSize(studentsIDs);
+        logmessage.sendLogBookMessage(studentsIDs, classSize);
     }
-}
-
-function getMapSize(x) {
-    var len = 0
-    for (var count in x) {
-        len++
-    }
-
-    return len
-}
-
-function mentionList(x) {
-    let values = Array.from(x.values())
-    for (var i = 0; i < values.length; i++) {
-        values[i] = "<@" + values[i] + ">"
-
-    }
-    return values
 }
