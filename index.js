@@ -33,34 +33,6 @@ const baseFile = 'command-base.js'
   readCommands('commands')
 })
 
-
-// CATCH RAW REACTION
-const rawEventTypes = {
-  MESSAGE_REACTION_ADD: 'messageReactionAdd',
-};
-
-client.on('raw', async (event) => {
-  if (!rawEventTypes[event.t]) return;
-  const { d: data } = event;
-  const channel = client.channels.cache.get(data.channel_id)
-  const message = await channel.messages.fetch(data.message_id);
-  let reaction = message.reactions.cache;
-  let studentID = message.author.id
-  let timestamp = message.createdTimestamp;
-  var date = new Date(timestamp);
-  var CSTDay = new Date(
-    date.getUTCFullYear(),
-    date.getUTCMonth(),
-    date.getUTCDate(),
-    date.getUTCHours() - 5,
-    date.getUTCMinutes())
-  var CSTTimestamp = Date.parse(CSTDay);
-
-  console.log('INSERTING DATA INTO DATABASE')
-  HomeworkDB.write(data.user_id, data.channel_id, CSTTimestamp.toString());
-
-});
-
 client.on('messageReactionAdd', async (reaction, user) => {
 	if (reaction.partial) {
 		try {
@@ -74,6 +46,21 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
   if (reaction.message.reactions.cache.size > 1){
     reaction.users.remove(user.id);
+  }
+
+  if (reaction.emoji.name === 'purple_check_mark' && reaction.message.channel.type === 'text') {
+    let timestamp = reaction.message.createdTimestamp;
+    var date = new Date(timestamp);
+    var CSTDay = new Date(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      date.getUTCHours() - 5,
+      date.getUTCMinutes())
+    var CSTTimestamp = Date.parse(CSTDay);
+  
+    console.log('INSERTING DATA INTO DATABASE')
+    HomeworkDB.write(reaction.message.author.id, reaction.message.channel.id, CSTTimestamp.toString());
   }
 });
 
