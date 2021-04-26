@@ -1,5 +1,4 @@
 const Discord = require('discord.js')
-const mongo = require('./mongo')
 const client = new Discord.Client()
 
 const fs = require('fs')
@@ -7,7 +6,6 @@ const path = require('path')
 
 const config = require('./config.json')
 const HomeworkDB = require('./database/homework-db')
-const { db } = require('./schemas/classcodes-schema')
 const token = (config.token)
 
 client.once('ready', async () => {

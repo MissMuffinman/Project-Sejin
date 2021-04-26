@@ -1,6 +1,3 @@
-const mongo = require('../mongo')
-const classCodesSchema = require('../schemas/classcodes-schema')
-const messageChannelSchema = require('../schemas/messageChannel-schema')
 const HomeworkDB = require('../database/homework-db')
 const ClassDB = require('../database/class-db')
 const messageChannelDB = require('../database/messageChannel-db')

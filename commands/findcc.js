@@ -1,4 +1,4 @@
-const ClassDB = require('../database/class-db')
+/* const ClassDB = require('../database/class-db')
 
 
 module.exports = {
@@ -30,4 +30,4 @@ module.exports = {
 
         message.channel.send("The class code is: " + cc)
     }   
-}
+} */

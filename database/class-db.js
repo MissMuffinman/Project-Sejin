@@ -59,7 +59,7 @@ async function write(roleID, channelID, classCode, title, image_url) {
   }
 }
 
-async function find(roleID) {
+/* async function find(roleID) {
   try{
     var path = require("path");
     var pathToJson = path.resolve(__dirname, "../aws_config.json");
@@ -85,7 +85,7 @@ async function find(roleID) {
     console.log(error);
   }
 //return result.Item;
-}
+} */
 
 module.exports.read = read;
 module.exports.write = write;

@@ -36,16 +36,13 @@ module.exports = {
         })
 
         console.log('DATA FETCHED')
-        let riddata = ccache
-        let ciddata = cIDcache
-        const cID = ciddata[0]
-        const assignedRole = riddata[0]
-        const room = riddata[1]
-        const title = riddata[2]
-        const img = riddata[3]
+        const assignedRole = ccache[0]
+        const room = ccache[1]
+        const title = ccache[2]
+        const img = ccache[3]
         const type = "vc"
 
-        console.log(title, assignedRole, room, korDay, desc, img)
+        console.log(title, assignedRole, room, desc, img)
 
         names = message.guild.channels.cache.get(room).members.filter(m => m.roles.cache.get(assignedRole)).map(m => m.user.id)
 
