@@ -24,9 +24,11 @@ module.exports = {
         cc = args[2]
         classTitle = args[3]
         url = args[4]
+        sID = message.guild.id;
+
 
         console.log('INSERTING DATA INTO DATABASE')
-        ClassDB.write(rID, cID, cc, classTitle, url)
+        ClassDB.write(sID, rID, cID, cc, classTitle, url)
 
         message.channel.send("You set " + cc + " to be the class code for <@&" + rID + ">\nThe class title is: " + classTitle + "\nThe class image is: " + url)
     }
