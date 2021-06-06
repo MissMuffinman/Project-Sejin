@@ -1,4 +1,3 @@
-const fs = require('fs');
 var path = require("path");
 const fileName = '../config.json';
 var pathToJson = path.resolve(__dirname, fileName);
@@ -30,7 +29,6 @@ module.exports = {
                 console.log([rollCallID]);
                 memberInfo.roles.add([rollCallID]);
                 rollcalled++;
-                //members.get(member).roles.add([rollCallID]);
             }
             else{
                 activeMembers++;
