@@ -1,4 +1,4 @@
-/* const ClassDB = require('../database/class-db')
+ const ClassDB = require('../database/class-db')
 
 
 module.exports = {
@@ -24,10 +24,9 @@ module.exports = {
         id = args[0]
         
         console.log('FETCHING FROM DATABASE')
-        ClassDB.find(id).then((result) => {
-            const cc = result.classCode.S;
+        ClassDB.getClassCodeByRoleID(id).then((result) => {
+            message.channel.send("The class code is: " + result.classCode.S);
         })
-
-        message.channel.send("The class code is: " + cc)
+        
     }   
-} */
+} 

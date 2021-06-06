@@ -59,7 +59,7 @@ async function write(roleID, channelID, classCode, title, image_url) {
   }
 }
 
-/* async function find(roleID) {
+async function getClassCodeByRoleID(roleID) {
   try{
     var path = require("path");
     var pathToJson = path.resolve(__dirname, "../aws_config.json");
@@ -69,24 +69,22 @@ async function write(roleID, channelID, classCode, title, image_url) {
 
     //console.log(classCode);
     var params = {
-      Item: {
-        "roleID": {
-          "S": roleID
-        }
-      }, 
-      TableName: "BA-Class"
+      TableName: "BA-Class",
+      IndexName: 'RoleIDIndex',
+      KeyConditionExpression: 'roleID = :role_id',
+      ExpressionAttributeValues: { ':role_id': { 'S': roleID } } 
     };
   
-    const result = await ddb.getKey(params).promise();
-    //console.log(JSON.stringify(result));
-    return result.Key;
+    const result = await ddb.query(params).promise();
+    console.log(JSON.stringify(result));
+    return result.Items[0];
 
   } catch (error) {
     console.log(error);
   }
 //return result.Item;
-} */
+} 
 
 module.exports.read = read;
 module.exports.write = write;
-module.exports.find = find;
+module.exports.getClassCodeByRoleID = getClassCodeByRoleID;
