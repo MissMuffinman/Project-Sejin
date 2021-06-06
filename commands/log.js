@@ -43,10 +43,10 @@ module.exports = {
             const img = ccache[4]
             const type = "vc"
 
-            
+            console.log(server, serverID, title, assignedRole, room, desc, img)
+
             names = message.guild.channels.cache.get(room).members.filter(m => m.roles.cache.get(assignedRole)).map(m => m.user.id)
 
-            console.log(server, serverID, title, assignedRole, room, desc, img)
             messageChannelDB.read(channel.id).then((result) => {
                 const cID = result.channelID.S;
                                  
