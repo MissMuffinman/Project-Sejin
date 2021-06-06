@@ -76,7 +76,7 @@ async function getClassCodeByRoleID(roleID) {
     };
   
     const result = await ddb.query(params).promise();
-    console.log(JSON.stringify(result));
+    //console.log(JSON.stringify(result));
     return result.Items[0];
 
   } catch (error) {
