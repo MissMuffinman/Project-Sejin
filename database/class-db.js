@@ -1,4 +1,5 @@
 const AWS = require("aws-sdk");
+const { Message } = require("discord.js");
 
 async function read(classCode) {
   try {
@@ -28,7 +29,7 @@ async function read(classCode) {
   //return result.Item;
 }
 
-async function write(serverID, roleID, channelID, classCode, title, image_url) {
+async function write(roleID, channelID, classCode, title, image_url) {
   try {
     var path = require("path");
     var pathToJson = path.resolve(__dirname, "../aws_config.json");
@@ -39,7 +40,6 @@ async function write(serverID, roleID, channelID, classCode, title, image_url) {
     var params = {
         TableName: "BA-Class",
         Item:{
-            serverID: {S: serverID},
             classCode: {S: classCode},
             roleID: {S: roleID},
             channelID: { S: channelID },

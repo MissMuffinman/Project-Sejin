@@ -14,8 +14,6 @@ module.exports = {
         if (args.length < 2) {
             return message.reply("Please insert the class code and description.")
         }
-        
-        const serverID = message.guild.id;
 
         args.shift()
         console.log(args[0])
@@ -30,7 +28,6 @@ module.exports = {
         console.log('FETCHING FROM DATABASE')
         ClassDB.read(classCode).then((result) => {
             ccache = [
-                result.serverID.S,
                 result.roleID.S,
                 result.channelID.S,
                 result.title.S,
@@ -46,23 +43,19 @@ module.exports = {
             const img = ccache[4]
             const type = "vc"
 
-            if(server == serverID) {
-                names = message.guild.channels.cache.get(room).members.filter(m => m.roles.cache.get(assignedRole)).map(m => m.user.id)
+            
+            names = message.guild.channels.cache.get(room).members.filter(m => m.roles.cache.get(assignedRole)).map(m => m.user.id)
 
-                console.log(server, serverID, title, assignedRole, room, desc, img)
-                messageChannelDB.read(channel.id).then((result) => {
-                    const cID = result.channelID.S;
+            console.log(server, serverID, title, assignedRole, room, desc, img)
+            messageChannelDB.read(channel.id).then((result) => {
+                const cID = result.channelID.S;
                                  
-                    messageChannel = guild.channels.cache.get(cID);
+                messageChannel = guild.channels.cache.get(cID);
                                           
-                    const logmessage = new LogMessage(messageChannel, assignedRole, room, title, desc, img, type);
-                    classSize = logmessage.getMapSize(names);
-                    logmessage.sendLogBookMessage(names, classSize);
-                });
-            }
-            else {
-                return message.reply("Class with that class code does not exist on this server.");
-            }
+                const logmessage = new LogMessage(messageChannel, assignedRole, room, title, desc, img, type);
+                classSize = logmessage.getMapSize(names);
+                logmessage.sendLogBookMessage(names, classSize);
+            });          
         });
     }
 }
