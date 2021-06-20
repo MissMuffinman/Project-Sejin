@@ -29,7 +29,10 @@ async function read(classCode) {
   //return result.Item;
 }
 
-async function write(roleID, channelID, classCode, title, image_url) {
+function write(serverID, roleID, channelID, classCode, title, image_url, alternativeRoleID) {
+  if (!alternativeRoleID){
+    alternativeRoleID = ""
+  }
   try {
     var path = require("path");
     var pathToJson = path.resolve(__dirname, "../aws_config.json");
@@ -45,18 +48,23 @@ async function write(roleID, channelID, classCode, title, image_url) {
             channelID: { S: channelID },
             title: {S: title},
             image_url: {S: image_url},
+            alternativeRoleID: {S: alternativeRoleID},
+            serverID: {S: serverID}
         }
     };
 
     ddb.putItem(params, function (err, data) {
         if (err) {
           console.log("Error", err);
+          return false;
         } else {
           console.log("Success", data);
+          return true;
         }
       })
   } catch (error) {
     console.log(error);
+    return false;
   }
 }
 

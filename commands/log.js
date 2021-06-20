@@ -1,7 +1,7 @@
 const ClassDB = require('../database/class-db')
 const messageChannelDB = require('../database/messageChannel-db')
 const LogMessage = require('../common/logbook-message')
-
+var client = require("../index.js");
 
 module.exports = {
     commands: 'log',
@@ -32,27 +32,41 @@ module.exports = {
                 result.channelID.S,
                 result.title.S,
                 result.image_url.S, 
+                result.alternativeRoleID.S, 
+                result.serverID.S
             ];
         
 
             console.log('DATA FETCHED')
-            const server = ccache[0]
-            const assignedRole = ccache[1]
-            const room = ccache[2]
-            const title = ccache[3]
-            const img = ccache[4]
+            const assignedRole = ccache[0]
+            const room = ccache[1]
+            const title = ccache[2]
+            const img = ccache[3]
+            const alternativeRole = ccache[4]
+            const vcServerID = ccache[5]
             const type = "vc"
 
-            console.log(server, serverID, title, assignedRole, room, desc, img)
+            console.log(title, assignedRole, room, desc, img, alternativeRole)
 
-            names = message.guild.channels.cache.get(room).members.filter(m => m.roles.cache.get(assignedRole)).map(m => m.user.id)
+            const vcServer = client.guilds.cache.get(vcServerID);
 
+
+            names = vcServer.channels.cache.get(room).members.filter(m => m.roles.cache.get(assignedRole)).map(m => m.user.id)
+
+
+            if (names.length == 0 || !names){
+                names = vcServer.channels.cache.get(room).members.filter(m => m.roles.cache.get(alternativeRole)).map(m => m.user.id)
+            }
+            
+            //get LogBookChannel ID and GuildID of main server
             messageChannelDB.read(channel.id).then((result) => {
-                const cID = result.channelID.S;
-                                 
-                messageChannel = guild.channels.cache.get(cID);
+                const channelID = result.channelID.S;
+                const guildID = result.guildID.S;
+
+                const guild = client.guilds.cache.get(guildID);
+                messageChannel = guild.channels.cache.get(channelID);
                                           
-                const logmessage = new LogMessage(messageChannel, assignedRole, room, title, desc, img, type);
+                const logmessage = new LogMessage(messageChannel, assignedRole, room, title, desc, img, type, alternativeRole);
                 classSize = logmessage.getMapSize(names);
                 logmessage.sendLogBookMessage(names, classSize);
             });          

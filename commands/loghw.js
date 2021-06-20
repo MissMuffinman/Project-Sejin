@@ -3,7 +3,7 @@ const ClassDB = require('../database/class-db')
 const messageChannelDB = require('../database/messageChannel-db')
 const LogMessage = require('../common/logbook-message')
 const DateValidator = require('../common/logbook-date') 
- 
+const client = require("../index.js");
 
 module.exports = {
     commands: 'loghw',
@@ -60,6 +60,7 @@ module.exports = {
               result.channelID.S,
               result.title.S,
               result.image_url.S,
+              result.alternativeRoleID.S
             ];
 
         
@@ -68,11 +69,17 @@ module.exports = {
             const room = riddata[1]
             const title = riddata[2]
             const img = riddata[3]
+            const alternativeRole = riddata[4]
             const type = "hw";
+
+            console.log(title, assignedRole, room, desc, img, alternativeRole)
             
             messageChannelDB.read(channel.id).then((result) => {
                 const cID = result.channelID.S;
-                
+                const guildID = result.guildID.S;
+
+                const guild = client.guilds.cache.get(guildID);
+                messageChannel = guild.channels.cache.get(cID);
                 
                 HomeworkDB.read(room, JSON.stringify(startDay.getTime()), JSON.stringify(endDay.getTime()))
                 .then((result) => {
@@ -88,7 +95,7 @@ module.exports = {
                     console.log(title, assignedRole, room, desc, img)              
                     messageChannel = guild.channels.cache.get(cID);
                                           
-                    const logmessage = new LogMessage(messageChannel, assignedRole, room, title, desc, img, type);
+                    const logmessage = new LogMessage(messageChannel, assignedRole, room, title, desc, img, type, alternativeRole);
                     classSize = logmessage.getMapSize(studentsIDs);
                     logmessage.sendLogBookMessage(studentsIDs, classSize);
                 });

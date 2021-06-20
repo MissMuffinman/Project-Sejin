@@ -5,7 +5,7 @@ module.exports = {
     callback:  async (message) => {
 
         if (message.author.bot) return
-        const { content, channel } = message
+        const { content, channel, guild } = message
         let text = content
         const args = text.split(' ')
 
@@ -20,7 +20,7 @@ module.exports = {
         console.log(chanID)
 
         console.log('INSERTING DATA INTO DATABASE')
-        messageChannelDB.write(cid, chanID);
+        messageChannelDB.write(cid, chanID, guild.id);
 
         message.channel.send("You set the message channel to be: " + chanID)
     }

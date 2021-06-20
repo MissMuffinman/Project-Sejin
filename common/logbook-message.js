@@ -1,5 +1,5 @@
 module.exports = class LogBookMessage {
-    constructor(messageChannel, assignedRole, room, title, description, img, type){
+    constructor(messageChannel, assignedRole, room, title, description, img, type, alternativeRole){
         this.messageChannel = messageChannel;
         this.assignedRole = assignedRole;
         this.room = room;
@@ -7,6 +7,7 @@ module.exports = class LogBookMessage {
         this.desc = description;
         this.img = img;
         this.type = type
+        this.alternativeRole = alternativeRole
         this.extra = ""
         if (type == "vc") {
             this.extra = "출석자 Attendees: "
@@ -75,7 +76,15 @@ module.exports = class LogBookMessage {
 
     sendLogBookMessage(names, classSize){
         const dateMessage = this.getDateMessage();
-        this.messageChannel.send(`LOGBOOK: ${this.title}\n <@&${this.assignedRole}>\n${dateMessage}\n\n${this.desc}\n${this.extra}`);
+        var tagRole = "";
+        if (this.messageChannel.guild.roles.cache.get(this.assignedRole) != undefined ){
+            //let role = message.guild.roles.find(r => r.name === );
+            tagRole = `<@&${this.assignedRole}>`
+        }
+        else {
+            tagRole = `<@&${this.alternativeRole}>`
+        }4
+        this.messageChannel.send(`LOGBOOK: ${this.title}\n ${tagRole}\n${dateMessage}\n\n${this.desc}\n${this.extra}`);
         var list = this.mentionList(names);
 
         for (var i = 0; i <= Math.ceil(classSize / 50); i++) {
