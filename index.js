@@ -1,5 +1,5 @@
 const Discord = require('discord.js')
-const client = new Discord.Client()
+const client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] })
 
 const fs = require('fs')
 const path = require('path')
@@ -58,10 +58,11 @@ client.on('messageReactionAdd', async (reaction, user) => {
     var CSTTimestamp = Date.parse(CSTDay);
   
     console.log('INSERTING DATA INTO DATABASE')
-    HomeworkDB.write(reaction.message.author.id, reaction.message.channel.id, CSTTimestamp.toString());
+    HomeworkDB.write(reaction.message.id, reaction.message.author.id, reaction.message.channel.id, CSTTimestamp.toString());
   }
 });
 
 client.on('error', console.error);
 
 client.login(token)
+module.exports = client;
