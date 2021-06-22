@@ -7,6 +7,7 @@ const path = require('path')
 const config = require('./config.json')
 const HomeworkDB = require('./database/homework-db')
 const token = (config.token)
+var hwChannels = []
 
 client.once('ready', async () => {
     console.log('LogBook is online!')
@@ -42,6 +43,10 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		}
 	}
 
+  if (!hwChannels.includes(reaction.message.channel.id)){
+    return;
+  }
+
   if (reaction.message.reactions.cache.size > 1){
     reaction.users.remove(user.id);
   }
@@ -66,3 +71,4 @@ client.on('error', console.error);
 
 client.login(token)
 module.exports = client;
+module.exports = hwChannels;
