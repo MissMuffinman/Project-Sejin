@@ -71,4 +71,3 @@ client.on('error', console.error);
 
 client.login(token)
 module.exports = client;
-module.exports = hwChannels;
