@@ -14,7 +14,7 @@ module.exports = {
         const { content, channel, guild } = message
         let text = content
         const args = text.split(' ')
-        if (args.length < 4) {
+        if (args.length < 5) {
             return message.reply("Please insert the class code, description, start day, start time, end day and end time.")
         }
         
@@ -75,6 +75,9 @@ module.exports = {
             console.log(title, assignedRole, room, desc, img, alternativeRole)
             
             messageChannelDB.read(channel.id).then((result) => {
+                if (!result){
+                    return message.reply("Please set the Message channel using command setMessageChannel")
+                }
                 const cID = result.channelID.S;
                 const guildID = result.guildID.S;
 

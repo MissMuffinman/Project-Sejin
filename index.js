@@ -5,9 +5,9 @@ const fs = require('fs')
 const path = require('path')
 
 const config = require('./config.json')
+const hwChannels = require('./hwchannels.json')
 const HomeworkDB = require('./database/homework-db')
 const token = (config.token)
-var hwChannels = []
 
 client.once('ready', async () => {
     console.log('LogBook is online!')
@@ -43,7 +43,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		}
 	}
 
-  if (!hwChannels.includes(reaction.message.channel.id)){
+  if (!hwChannels.ids.includes(reaction.message.channel.id)){
     return;
   }
 

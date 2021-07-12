@@ -4,6 +4,7 @@ var pathToJson = path.resolve(__dirname, fileName);
 const file = require(pathToJson);
 
 const activeRoleID = file.activeRole;
+const sunbaeRoleID = file.sunbaeRole;
 const rollCallID = file.rollcallRole;
 
 module.exports = {
@@ -25,7 +26,7 @@ module.exports = {
             }
 
 
-            if(!memberInfo.roles.cache.get(activeRoleID)){
+            if(!memberInfo.roles.cache.get(activeRoleID) || !memberInfo.roles.cache.get(sunbaeRoleID)){
                 console.log([rollCallID]);
                 memberInfo.roles.add([rollCallID]);
                 rollcalled++;

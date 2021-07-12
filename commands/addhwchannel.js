@@ -1,4 +1,9 @@
-const hwChannels = require('../index.js')
+// file system module to perform file operations
+const fs = require('fs');
+var path = require("path");
+const fileName = '../hwchannels.json';
+var pathToJson = path.resolve(__dirname, fileName);
+const file = require(pathToJson);
 
 module.exports = {
     commands: 'addhwchannel',
@@ -20,9 +25,19 @@ module.exports = {
         args.shift()
         channelID = args[0]
 
+        if (file.ids.includes(reaction.message.channel.id)){
+            message.reply(`Channel <#${channelID}> has already been added as a Homework Channel.`)
+        }
+
         console.log('SAVING NEW CHANNEL')
 
-        hwChannels.push(channelID)
+        file.ids.push(channelID);
+    
+        fs.writeFile(pathToJson, JSON.stringify(file), function writeJSON(err) {
+            if (err) return console.log(err);
+            console.log(JSON.stringify(file));
+            console.log('writing to ' + pathToJson);
+            });
 
         console.log(channelID);
 

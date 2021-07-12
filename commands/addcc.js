@@ -40,13 +40,8 @@ module.exports = {
         }
 
         console.log('INSERTING DATA INTO DATABASE')
-        var status = ClassDB.write(sID, rID, cID, cc, classTitle, url, alternativeRoleID)
+        ClassDB.write(sID, rID, cID, cc, classTitle, url, alternativeRoleID)
 
-        console.log(status);
-
-        if (!status) {
-            return message.channel.send("There was a problem adding the class to the database")
-        }
         message.channel.send("You set " + cc + " to be the class code for <@&" + rID + ">\nThe class title is: " + classTitle + "\nThe class image is: " + url)
     }
 }
