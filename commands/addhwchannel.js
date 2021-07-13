@@ -26,7 +26,7 @@ module.exports = {
         channelID = args[0]
 
         if (file.ids.includes(channelID)){
-            message.reply(`Channel <#${channelID}> has already been added as a Homework Channel.`)
+            return message.reply(`Channel <#${channelID}> has already been added as a Homework Channel.`)
         }
 
         console.log('SAVING NEW CHANNEL')
