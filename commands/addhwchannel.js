@@ -25,7 +25,7 @@ module.exports = {
         args.shift()
         channelID = args[0]
 
-        if (file.ids.includes(reaction.message.channel.id)){
+        if (file.ids.includes(channelID)){
             message.reply(`Channel <#${channelID}> has already been added as a Homework Channel.`)
         }
 
