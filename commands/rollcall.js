@@ -26,7 +26,7 @@ module.exports = {
             }
 
 
-            if(!memberInfo.roles.cache.get(activeRoleID) || !memberInfo.roles.cache.get(sunbaeRoleID)){
+            if(!memberInfo.roles.cache.get(activeRoleID) && !memberInfo.roles.cache.get(sunbaeRoleID)){
                 console.log([rollCallID]);
                 memberInfo.roles.add([rollCallID]);
                 rollcalled++;
