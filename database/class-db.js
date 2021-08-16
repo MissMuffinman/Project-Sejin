@@ -29,10 +29,7 @@ async function read(classCode) {
   //return result.Item;
 }
 
-function write(serverID, roleID, channelID, classCode, title, image_url, alternativeRoleID) {
-  if (!alternativeRoleID){
-    alternativeRoleID = ""
-  }
+function write(serverID, roleID, channelID, classCode, title, image_url, numberOfHomeworks) {
   try {
     var path = require("path");
     var pathToJson = path.resolve(__dirname, "../aws_config.json");
@@ -48,8 +45,8 @@ function write(serverID, roleID, channelID, classCode, title, image_url, alterna
             channelID: { S: channelID },
             title: {S: title},
             image_url: {S: image_url},
-            alternativeRoleID: {S: alternativeRoleID},
-            serverID: {S: serverID}
+            serverID: {S: serverID},
+            numberOfHomeworks: {S: numberOfHomeworks},
         }
     };
 

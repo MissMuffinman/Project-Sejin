@@ -18,7 +18,7 @@ async function read(channelID, startDate, endDate) {
         ":class": { S: channelID },
       },
       KeyConditionExpression: "channelID = :class",
-      ProjectionExpression: "studentID",
+      //ProjectionExpression: "studentID",
       FilterExpression: "#timestamp BETWEEN :s and :e",
       ExpressionAttributeNames: {
         "#timestamp": "timestamp",
@@ -31,27 +31,13 @@ async function read(channelID, startDate, endDate) {
   } catch (error) {
     console.log(error);
   }
-  /*
-  ddb.query(params, function (err, data) {
-    if (err) {
-      console.log("Error", err);
-    } else {
-      //console.log("Success", data.Items);
-      data.Items.forEach(function (element) {
-        studentsIDs.push(element.studentID.S);
-        console.log(element.studentID.S);
-      });
-      return studentsIDs;
-    }
-  });
-  return studentsIDs;
-  */
 }
 
 //TODO: Modify this to async
-async function write(messsageID, studentID, channelID, timestamp) {
+async function write(messageID, studentID, channelID, timestamp, type) {
   try {
     var path = require("path");
+    var result;
     var pathToJson = path.resolve(__dirname, "../aws_config.json");
     AWS.config.loadFromPath(pathToJson);
 
@@ -60,19 +46,25 @@ async function write(messsageID, studentID, channelID, timestamp) {
     var params = {
       TableName: "BA-Homework",
       Item: {
-        messsageID: { S: messsageID },
+        messageID: { S: messageID },
         studentID: { S: studentID },
         channelID: { S: channelID },
         timestamp: { S: timestamp },
+        type: { S: type},
       },
     };
-
-    ddb.putItem(params, function (err, data) {
-      if (err) {
-        console.log("Error", err);
-      } else {
-        console.log("Success", data);
-      }
+    return new Promise(resolve => {
+      ddb.putItem(params, function (err, data) {
+        if (err) {
+          console.log("Error", err);
+          result = false;
+          resolve(result);
+        } else {
+          console.log("Success", data);
+          result = true;
+          resolve(result);
+        }
+      });
     });
   } catch (error) {
     console.log(error);

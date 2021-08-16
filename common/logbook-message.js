@@ -1,17 +1,8 @@
 module.exports = class LogBookMessage {
-    constructor(messageChannel, assignedRole, room, title, description, img, type, alternativeRole){
+    constructor(messageChannel, classInfo, description){
         this.messageChannel = messageChannel;
-        this.assignedRole = assignedRole;
-        this.room = room;
-        this.title = title;
+        this.classInfo = classInfo;
         this.desc = description;
-        this.img = img;
-        this.type = type
-        this.alternativeRole = alternativeRole
-        this.extra = ""
-        if (type == "vc") {
-            this.extra = "출석자 Attendees: "
-        }
     }
 
     getDateMessage() {
@@ -74,19 +65,7 @@ module.exports = class LogBookMessage {
         return len
     }
 
-    sendLogBookMessage(names, classSize){
-        const dateMessage = this.getDateMessage();
-        var tagRole = "";
-        if (this.messageChannel.guild.roles.cache.get(this.assignedRole) != undefined ){
-            //let role = message.guild.roles.find(r => r.name === );
-            tagRole = `<@&${this.assignedRole}>`
-        }
-        else {
-            tagRole = `<@&${this.alternativeRole}>`
-        }4
-        this.messageChannel.send(`LOGBOOK: ${this.title}\n ${tagRole}\n${dateMessage}\n\n${this.desc}\n${this.extra}`);
-        var list = this.mentionList(names);
-
+    sendStudentsUsernamesByGroup(list, messageChannel, classSize){
         for (var i = 0; i <= Math.ceil(classSize / 50); i++) {
             var List = list.slice(i * 50, i * 50 + 50).join(' ')
             if (i < 1) {
@@ -96,7 +75,17 @@ module.exports = class LogBookMessage {
                 messageChannel.send("cont.\n" + List)
             }
         }
-        messageChannel.send({ files: [this.img] })
+    }
+
+    sendFirstPartOfLogbookMessage(){
+        const dateMessage = this.getDateMessage();
+        var tagRole = "";
+        console.log(this.classInfo.assignedRole);
+        if (this.messageChannel.guild.roles.cache.get(this.classInfo.assignedRole) != undefined ){
+            //let role = message.guild.roles.find(r => r.name === );
+            tagRole = `<@&${this.classInfo.assignedRole}>`
+        }
+        this.messageChannel.send(`LOGBOOK: ${this.classInfo.title}\n ${tagRole}\n${dateMessage}\n\n${this.desc}\n${this.extra}`);
     }
 
 }

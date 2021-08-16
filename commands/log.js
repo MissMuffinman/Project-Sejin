@@ -1,6 +1,6 @@
 const ClassDB = require('../database/class-db')
 const messageChannelDB = require('../database/messageChannel-db')
-const LogMessage = require('../common/logbook-message')
+const VCLogBook = require('../common/logbook-vc')
 var client = require("../index.js");
 
 module.exports = {
@@ -27,46 +27,39 @@ module.exports = {
 
         console.log('FETCHING FROM DATABASE')
         ClassDB.read(classCode).then((result) => {
-            ccache = [
-                result.roleID.S,
-                result.channelID.S,
-                result.title.S,
-                result.image_url.S, 
-                result.alternativeRoleID.S, 
-                result.serverID.S
-            ];
-        
+            classInfo = {
+                assignedRole: result.roleID.S,
+                channelID: result.channelID.S,
+                title: result.title.S,
+                img: result.image_url.S,
+                serverID: result.serverID.S
+            };
 
             console.log('DATA FETCHED')
-            const assignedRole = ccache[0]
-            const room = ccache[1]
-            const title = ccache[2]
-            const img = ccache[3]
-            const alternativeRole = ccache[4]
-            const vcServerID = ccache[5]
+            const assignedRole = classInfo.assignedRole
+            const room = classInfo.channelID
+            
+            const vcServerID = classInfo.serverID
             const type = "vc"
 
-            console.log(title, assignedRole, room, desc, img, alternativeRole)
 
             const vcServer = client.guilds.cache.get(vcServerID);
 
 
             names = vcServer.channels.cache.get(room).members.filter(m => m.roles.cache.get(assignedRole)).map(m => m.user.id)
 
-
-            if (names.length == 0 || !names){
-                names = vcServer.channels.cache.get(room).members.filter(m => m.roles.cache.get(alternativeRole)).map(m => m.user.id)
-            }
             
             //get LogBookChannel ID and GuildID of main server
             messageChannelDB.read(channel.id).then((result) => {
-                const channelID = result.channelID.S;
-                const guildID = result.guildID.S;
+                const messageChannelID = result.channelID.S;
+                const messageChannelGuildID = result.guildID.S;
 
-                const guild = client.guilds.cache.get(guildID);
-                messageChannel = guild.channels.cache.get(channelID);
+                
+                const guild = client.guilds.cache.get(messageChannelGuildID);
+                messageChannel = guild.channels.cache.get(messageChannelID);
+                console.log(messageChannel);
                                           
-                const logmessage = new LogMessage(messageChannel, assignedRole, room, title, desc, img, type, alternativeRole);
+                const logmessage = new VCLogBook(messageChannel, classInfo, desc);
                 classSize = logmessage.getMapSize(names);
                 logmessage.sendLogBookMessage(names, classSize);
             });          

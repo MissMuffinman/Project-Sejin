@@ -1,4 +1,10 @@
 const got = require('got');
+const fs = require('fs');
+var path = require("path");
+const fileName = '../hwchannels.json';
+var pathToJson = path.resolve(__dirname, fileName);
+const file = require(pathToJson);
+
 
 module.exports = {
 
@@ -30,5 +36,27 @@ module.exports = {
                 console.log(error.response.body);
             }
         })();
+    },
+
+
+    addHomeworkChannel(channelID, message){
+        if (file.ids.includes(channelID)){
+            message.reply(`Channel <#${channelID}> has already been added as a Homework Channel.`)
+            return false;
+        }
+
+        console.log('SAVING NEW CHANNEL')
+
+        file.ids.push(channelID);
+    
+        fs.writeFile(pathToJson, JSON.stringify(file), function writeJSON(err) {
+            if (err){
+                console.log(err);
+                return false;
+            } 
+            console.log(JSON.stringify(file));
+            console.log('writing to ' + pathToJson);
+            });
+        return true;
     }
 };

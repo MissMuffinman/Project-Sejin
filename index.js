@@ -1,5 +1,5 @@
 const Discord = require('discord.js')
-const client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] })
+const client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], intents: ['GUILD_PRESENCES', 'GUILD_MEMBERS'] })
 
 const fs = require('fs')
 const path = require('path')
@@ -47,12 +47,10 @@ client.on('messageReactionAdd', async (reaction, user) => {
     return;
   }
 
-  if (reaction.message.reactions.cache.size > 1){
-    reaction.users.remove(user.id);
-  }
-
   if (reaction.emoji.name === 'purple_check_mark' && reaction.message.channel.type === 'text') {
     let timestamp = reaction.message.createdTimestamp;
+    const firstEmoji = reaction.message.reactions.cache.values().next().value._emoji.name;
+    emojiName = getNameOfEmoji(firstEmoji);
     var date = new Date(timestamp);
     var CSTDay = new Date(
       date.getUTCFullYear(),
@@ -63,9 +61,40 @@ client.on('messageReactionAdd', async (reaction, user) => {
     var CSTTimestamp = Date.parse(CSTDay);
   
     console.log('INSERTING DATA INTO DATABASE')
-    HomeworkDB.write(reaction.message.id, reaction.message.author.id, reaction.message.channel.id, CSTTimestamp.toString());
+    const first_promise = await HomeworkDB.write(reaction.message.id, reaction.message.author.id, reaction.message.channel.id, CSTTimestamp.toString(), emojiName);
+    if (first_promise == true){
+      reaction.message.react('👍')
+    }
+    else {
+      reaction.message.react('❌')
+    }
   }
 });
+
+function getNameOfEmoji(emoji) {
+  switch (emoji) {
+    case '1️⃣':
+      return '1'
+    case '2️⃣':
+      return '2'
+    case '3️⃣':
+      return '3'
+    case '4️⃣':
+      return '4'
+    case '5️⃣':
+      return '5'
+    case '6️⃣':
+      return '6'
+    case '7️⃣':
+      return '7'
+    case '8️⃣':
+      return '8'
+    case '9️⃣':
+      return '9'
+    case '🔟':
+      return '10'
+  }      
+}
 
 client.on('error', console.error);
 
