@@ -1,6 +1,6 @@
 const AWS = require("aws-sdk");
 
-async function read(channelID, startDate, endDate) {
+async function read(channelID, startDate, endDate, classCode) {
   try {
     var path = require("path");
     var pathToJson = path.resolve(__dirname, "../aws_config.json");
@@ -15,10 +15,9 @@ async function read(channelID, startDate, endDate) {
       ExpressionAttributeValues: {
         ":s": { S: startDate },
         ":e": { S: endDate },
-        ":class": { S: channelID },
+        ":classCode": { S: classCode },
       },
-      KeyConditionExpression: "channelID = :class",
-      //ProjectionExpression: "studentID",
+      KeyConditionExpression: "classCode = :classCode",
       FilterExpression: "#timestamp BETWEEN :s and :e",
       ExpressionAttributeNames: {
         "#timestamp": "timestamp",
@@ -34,7 +33,7 @@ async function read(channelID, startDate, endDate) {
 }
 
 //TODO: Modify this to async
-async function write(messageID, studentID, channelID, timestamp, type) {
+async function write(messageID, studentID, channelID, timestamp, type, classCode) {
   try {
     var path = require("path");
     var result;
@@ -50,6 +49,7 @@ async function write(messageID, studentID, channelID, timestamp, type) {
         studentID: { S: studentID },
         channelID: { S: channelID },
         timestamp: { S: timestamp },
+        classCode: { S: classCode},
         type: { S: type},
       },
     };

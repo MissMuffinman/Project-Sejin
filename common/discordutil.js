@@ -38,17 +38,7 @@ module.exports = {
         })();
     },
 
-
-    addHomeworkChannel(channelID, message){
-        if (file.ids.includes(channelID)){
-            message.reply(`Channel <#${channelID}> has already been added as a Homework Channel.`)
-            return false;
-        }
-
-        console.log('SAVING NEW CHANNEL')
-
-        file.ids.push(channelID);
-    
+    writeToFile(){
         fs.writeFile(pathToJson, JSON.stringify(file), function writeJSON(err) {
             if (err){
                 console.log(err);
@@ -56,7 +46,29 @@ module.exports = {
             } 
             console.log(JSON.stringify(file));
             console.log('writing to ' + pathToJson);
-            });
+        });
+    },
+
+    addHomeworkChannel(channelID, message, classCode){
+        if (channelID in file.ids){
+            message.reply(`Channel <#${channelID}> has already been added as a Homework Channel.`)
+            return false;
+        }
+        console.log('SAVING NEW CHANNEL')
+
+        file.ids[channelID] = classCode;
+        this.writeToFile();
+        return true;
+    },
+    removeHomeworkChannel(channelID, message){
+        if (!(channelID in file.ids)){
+            message.reply(`Channel <#${channelID}> has not been added as a Homework Channel.`)
+            return false;
+        }
+        console.log('SAVING NEW CHANNEL')
+
+        delete file.ids[channelID];
+        this.writeToFile();
         return true;
     }
 };

@@ -19,8 +19,13 @@ Example: *loghw TEST01 Description goes here (2021/08/15 00:00 2021/08/21 11:00)
 
 6. removehwcheckerroles [roleID] [roleID] [roleID]: This command sets permissions for who can use the :purple_check_mark: emoji for checking homework. You remove permissions to one or multiple roles.
 
+7. addhwchannel [classCode] [channelID]: This commands add an extra homework channel to a club/class.
+
+8. removehwchannel [channelID]: This commands removes a homework channel from a club/class.
+
 Useful commands:
 findcc [RoleID]: This command gives you the class code.
+serverunmute [username]: This command unmutes a user.
 help: Sends help.
 
 How to check homework for logbook:

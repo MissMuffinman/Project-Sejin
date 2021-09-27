@@ -32,15 +32,22 @@ module.exports = {
             sID = args[6]
         }
 
-        const classChannel = message.channel.guild.channels.cache.get(cID);
-        
-        if (!classChannel && !sID){
-            return message.reply(`${cID} is not a valid channel Id from this server. If this channel is from another server, please add the Server ID after the image link.`)
-        }
-
-        if (classChannel.type == "text" && numberOfHomeworks == 0){
-            return message.reply(`<#${cID}> is a text channel. The number of assigments should be greater than 0.`)
-        }
+        allChannelIDs = cID.split("_")  
+        allChannelIDs.forEach(hwChannelID => {
+            var hwChannel = message.channel.guild.channels.cache.get(hwChannelID); 
+            if (!hwChannel && !sID) {
+                return message.reply(`${hwChannelID} is not a valid channel Id from this server. If this channel is from another server, please add the Server ID after the image link.`)
+            }
+            if (hwChannel && hwChannel.type == "text" && numberOfHomeworks == 0) {
+                return message.reply(`<#${cID}> is a text channel. The number of assigments should be greater than 0.`)
+            }
+            if (numberOfHomeworks > 0){
+                var addedChannelCorrectly = DiscordUtil.addHomeworkChannel(hwChannelID, message, cc)
+                if (addedChannelCorrectly){
+                    message.channel.send(`Added channel <#${hwChannelID}> (${hwChannelID}) as a Homework channel`)
+                }
+            }  
+        })
 
         if (!sID){
             sID = message.guild.id;
@@ -48,13 +55,6 @@ module.exports = {
 
         console.log('INSERTING DATA INTO DATABASE')
         ClassDB.write(sID, rID, cID, cc, classTitle, url, numberOfHomeworks.toString())
-
-        if (classChannel.type == "text" && numberOfHomeworks > 0){
-            var addedChannelCorrectly = DiscordUtil.addHomeworkChannel(cID, message)
-            if (addedChannelCorrectly){
-                message.channel.send(`Added channel <#${cID}> (${cID}) as a Homework channel`)
-            }
-        }
 
         message.channel.send("You set " + cc + " to be the class code for <@&" + rID + ">\nThe class title is: " + classTitle + "\nThe class image is: " + url)
     }

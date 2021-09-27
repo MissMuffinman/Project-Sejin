@@ -69,8 +69,7 @@ module.exports = {
                 const guild = client.guilds.cache.get(messageChannelGuildID);
                 messageChannel = guild.channels.cache.get(messageChannelID);
                 console.log("cID", classInfo.channelID);
-
-                HomeworkDB.read(classInfo.channelID, startDay, endDay)
+                HomeworkDB.read(classInfo.channelID, startDay, endDay, ccid)
                 .then((result) => {
                   result.forEach(function (element) {
                       hwNumber = element.type.S

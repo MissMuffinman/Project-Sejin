@@ -65,6 +65,23 @@ module.exports = class LogBookMessage {
         return len
     }
 
+    splitMessage(str, max){
+        const suffix = " cont."
+        var numberOfMessages = Math.ceil(str.length / max);
+        var messages = [];
+        for (var i = 0; i < numberOfMessages; i++) {
+            var start = i*(max - suffix.length);
+            if (i == numberOfMessages - 1){
+                var message = `${str.substr(start, str.substr(start, start + max).lastIndexOf(' '))}`
+            }
+            else {
+                var message = `${str.substr(start, str.substr(start, start + max - suffix.length).lastIndexOf(' '))}\n${suffix}`
+            }
+            messages.push(message);
+        }
+        return messages;
+    }
+
     sendStudentsUsernamesByGroup(list, messageChannel, classSize){
         for (var i = 0; i <= Math.ceil(classSize / 50); i++) {
             var List = list.slice(i * 50, i * 50 + 50).join(' ')
