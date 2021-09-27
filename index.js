@@ -43,9 +43,11 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		}
 	}
 
-  if (!hwChannels.ids.includes(reaction.message.channel.id)){
+  if (!(reaction.message.channel.id in hwChannels.ids)){
     return;
   }
+  const classCode = hwChannels.ids[reaction.message.channel.id];
+  console.log(classCode);
 
   if (reaction.emoji.name === 'purple_check_mark' && reaction.message.channel.type === 'text') {
     let timestamp = reaction.message.createdTimestamp;
@@ -61,7 +63,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
     var CSTTimestamp = Date.parse(CSTDay);
   
     console.log('INSERTING DATA INTO DATABASE')
-    const first_promise = await HomeworkDB.write(reaction.message.id, reaction.message.author.id, reaction.message.channel.id, CSTTimestamp.toString(), emojiName);
+    const first_promise = await HomeworkDB.write(reaction.message.id, reaction.message.author.id, reaction.message.channel.id, CSTTimestamp.toString(), emojiName, classCode);
     if (first_promise == true){
       reaction.message.react('👍')
     }
