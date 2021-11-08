@@ -17,7 +17,8 @@ module.exports = class HomeworkLogBook extends LogMessage {
             var key = Object.keys(names)[i]
             var hwDesc = `Assignment ${key}: `;
             var list = this.mentionList(names[key]);
-            fullMessage += hwDesc + list + " \n";
+            fullMessage += hwDesc + list.join(" ") + " \n";
+            console.log(fullMessage);
         }
         if (fullMessage.length > 2000) {
             var messages = this.splitMessage(fullMessage, 2000);
