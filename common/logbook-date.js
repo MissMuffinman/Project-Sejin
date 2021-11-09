@@ -29,4 +29,22 @@ module.exports = class DateValidator {
         var isValid = /^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$/.test(timeString);
         return isValid;
     }
+    
+    adaptFormatOfDays(startTime, startDay, endTime, endDay){
+        startTime = startTime.split(":");
+        endTime = endTime.split(":");
+        const startHour = startTime[0];
+        const startMinutes = startTime[1];
+        const endHour = endTime[0];
+        const endMinutes = endTime[1];
+
+        startDay = new Date(new Date(startDay).setHours(startHour))
+        startDay.setMinutes(startMinutes); 
+        startDay = JSON.stringify(startDay.getTime());
+        endDay = new Date(new Date(endDay).setHours(endHour));
+        endDay.setMinutes(endMinutes);
+        endDay = JSON.stringify(endDay.getTime())
+
+        return [startDay, endDay];
+    }
 }

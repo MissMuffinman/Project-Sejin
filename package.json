@@ -11,13 +11,12 @@
   "author": "MissMuffinman",
   "license": "ISC",
   "dependencies": {
+    "@discordjs/rest": "^0.1.0-canary.0",
     "aws-sdk": "^2.918.0",
+    "discord-api-types": "^0.24.0",
     "discord-backup": "^2.5.0",
-    "discord.js": "^12.5.1",
+    "discord.js": "^13.3.1",
     "endb": "^0.23.0",
-    "got": "^11.8.2",
-    "mongoose": "^5.11.8",
-    "sql": "^0.78.0",
-    "sqlite3": "^5.0.0"
+    "got": "^11.8.2"
   }
 }

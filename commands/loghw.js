@@ -1,44 +1,65 @@
+const { SlashCommandBuilder, roleMention, channelMention } = require('@discordjs/builders');
 const HomeworkDB = require('../database/homework-db')
 const ClassDB = require('../database/class-db')
 const messageChannelDB = require('../database/messageChannel-db')
 const HomeworkLogBook = require('../common/logbook-homework')
 const DateValidator = require('../common/logbook-date') 
-const client = require("../index.js");
 
 module.exports = {
-    commands: 'loghw',
-    callback:  async (message, args) => {
-        if (message.author.bot) return
-        ccache = {}
-        const { content, channel, guild } = message
-        let text = content
-        if (args.length < 5) {
-            return message.reply("Please insert the class code, description, start day, start time, end day and end time.")
-        }
-        
-        console.log("0", args[0])
+	data: new SlashCommandBuilder()
+		.setName('loghw')
+		.setDescription('Log a class in the message channel.')
+        .addStringOption(option =>
+            option.setName('class_code')
+                .setDescription('The class code for the class')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('description')
+                .setDescription('The description on the top of message')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('start_date')
+                .setDescription('The first day to log in the logbook (Format YYYY/MM/DD)')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('start_time')
+                .setDescription('Add the time for when to start looking homework (Format HH:MM)')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('end_date')
+                .setDescription('The last day to log in the logbook (Format YYYY/MM/DD)')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('end_time')
+                .setDescription('Add the time for when to top looking homework (Format HH:MM)')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('hw_description')
+                .setDescription('Description for each homework. Add "number" to include the number. Eg: Assigment #"number"')
+                .setRequired(false)),
+	async execute(interaction) {
+        const options = interaction.options
 
-        
-        const ccid = args[0]
-        const description = args.slice(1)
-        const time = args.slice(-4);
-        const desc = description.join(' ').replace(/ *\([^)]*\) */g, "");
-        let startDay = time[0].replace("(", "");
-        let startTime = time[1];
-        let endDay = time[2];
-        let endTime = time[3].replace(")", "");
+        let startDay = options.getString('start_date');
+        let startTime = options.getString('start_time');
+        let endDay = options.getString('end_date');
+        let endTime = options.getString('end_time');
+        const classCode = options.getString('class_code')
+        const desc = options.getString('description')
+        const hwDesc = options.getString('hw_description')
 
         const dateValid = new DateValidator();
 
         if (!dateValid.isValidDate(endDay) || ! dateValid.isValidDate(startDay) || !dateValid.isValidTime(startTime) || ! dateValid.isValidTime(endTime)) {
-            return message.reply("Please insert the correct format for dates and time (YYYY/MM/DD HH:MM)")
+            return interaction.reply("Please insert the correct format for dates and time (YYYY/MM/DD HH:MM)")
         }
 
-        if (ccid.length >= 7) {
-            return message.reply("Class Code should have 6 characters")
+        if (classCode.length >= 7) {
+            return interaction.reply("Class Code should have 6 characters.")
         }
+        dateValid.adaptFormatOfDays(startTime, startDay, endTime, endDay);
 
-        periodDayTimes = adaptFormatOfDays(startTime, startDay, endTime, endDay);
+        periodDayTimes = dateValid.adaptFormatOfDays(startTime, startDay, endTime, endDay);
         startDay = periodDayTimes[0];
         endDay = periodDayTimes[1];
 
@@ -46,30 +67,31 @@ module.exports = {
 
         console.log('FETCHING FROM DATABASE')
 
-        // Get information from the class using ClassCodeID
+        // Get information from the class using ClassCodeID        
 
-        ClassDB.read(ccid).then((result) => {
+        ClassDB.read(classCode).then((result) => {
             classInfo = {
-              assignedRole: result.roleID.S,
-              channelID: result.channelID.S,
-              title: result.title.S,
-              img: result.image_url.S,
+                assignedRole: result.roleID.S,
+                channelID: result.channelID.S,
+                title: result.title.S,
+                img: result.image_url.S,
+                serverID: result.serverID.S
             };
-            const type = "hw"
-                        
-            //get LogBookChannel ID and GuildID of main server 
-            
-            messageChannelDB.read(channel.id).then((result) => {
-                if (!result){
-                    return message.reply("Please set the Message channel using command setMessageChannel")
-                }
+
+            console.log('DATA FETCHED')
+
+            //get LogBookChannel ID and GuildID of main server
+            messageChannelDB.read(interaction.channel.id).then((result) => {
                 const messageChannelID = result.channelID.S;
                 const messageChannelGuildID = result.guildID.S;
 
-                const guild = client.guilds.cache.get(messageChannelGuildID);
+                
+                const guild = interaction.client.guilds.cache.get(messageChannelGuildID);
                 messageChannel = guild.channels.cache.get(messageChannelID);
-                console.log("cID", classInfo.channelID);
-                HomeworkDB.read(classInfo.channelID, startDay, endDay, ccid)
+
+                // Search in the db for all the homework submitted and checked during a period of time
+
+                HomeworkDB.read(classInfo.channelID, startDay, endDay, classCode)
                 .then((result) => {
                   result.forEach(function (element) {
                       hwNumber = element.type.S
@@ -78,40 +100,19 @@ module.exports = {
                     });
                     console.log('DATA FETCHED', Object.keys(studentsIDs).length)
                     if (Object.keys(studentsIDs).length == 0) {
-                        return message.reply("There was no homework submitted during this time period.")
+                        return interaction.reply("There was no homework submitted during this time period.")
                     }
-
-                    console.log(studentsIDs);
-                    
+                                        
                     messageChannel = guild.channels.cache.get(messageChannelID);
                     
-                    const logmessage = new HomeworkLogBook(messageChannel, classInfo, desc, Object.keys(studentsIDs).length);
+                    const logmessage = new HomeworkLogBook(messageChannel, classInfo, desc, Object.keys(studentsIDs).length, hwDesc);
                     classSize = logmessage.getMapSize(studentsIDs);
                     logmessage.sendLogBookMessage(studentsIDs, classSize);
+                    interaction.reply("Logbook posted!")
                 });
-            })
-    
-
+            });          
         });
-    
-        function adaptFormatOfDays(startTime, startDay, endTime, endDay){
-            startTime = startTime.split(":");
-            endTime = endTime.split(":");
-            const startHour = startTime[0];
-            const startMinutes = startTime[1];
-            const endHour = endTime[0];
-            const endMinutes = endTime[1];
 
-            startDay = new Date(new Date(startDay).setHours(startHour))
-            startDay.setMinutes(startMinutes); 
-            startDay = JSON.stringify(startDay.getTime());
-            endDay = new Date(new Date(endDay).setHours(endHour));
-            endDay.setMinutes(endMinutes);
-            endDay = JSON.stringify(endDay.getTime())
 
-            return [startDay, endDay];
-        }
-
-    
-    }
-}
+	},
+};

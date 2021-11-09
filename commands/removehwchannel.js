@@ -1,29 +1,23 @@
 const DiscordUtil = require('../common/discordutil.js');
-
+const { SlashCommandBuilder} = require('@discordjs/builders');
 module.exports = {
-    commands: 'removehwchannel',
-    callback:  async (message) => {
-
-        if (message.author.bot) return
-
-        const { content } = message
-
-        let text = content
-        const args = text.split(' ')
-
-        console.log(text)
-
-        if (args.length < 2) {
-            return message.reply("Please insert the channel ID.")
-        }
-
-        args.shift()
-        channelID = args[0]
+	data: new SlashCommandBuilder()
+		.setName('removehwchannel')
+		.setDescription('Remove a homework channel')
+        .addChannelOption(option =>
+            option.setName('channel')
+                .setDescription('The channel')
+                .setRequired(true)),
+	async execute(interaction) {
+        const options = interaction.options
+        const channelID = options.getChannel('channel').id;
 
         console.log('SAVING NEW CHANNEL')
-        var addedChannelCorrectly = DiscordUtil.removeHomeworkChannel(channelID, message)
-        if (addedChannelCorrectly){
-            message.channel.send(`Removed channel <#${channelID}> (${channelID}) as a Homework channel`)
+        var removedChannelCorrectly = DiscordUtil.removeHomeworkChannel(channelID, interaction)
+        if (removedChannelCorrectly){
+            return interaction.reply(`Removed channel <#${channelID}> (${channelID}) as a Homework channel`)
         }
-    }
-}
+        
+		return interaction.reply("There was a problem removeing this channel to the class.")
+	},
+};

@@ -1,42 +1,39 @@
 const messageChannelDB = require('../database/messageChannel-db')
 
+const { SlashCommandBuilder } = require('@discordjs/builders');
 module.exports = {
-    commands: 'setMessageChannel',
-    callback:  async (message) => {
+	data: new SlashCommandBuilder()
+		.setName('setmessagechannel')
+		.setDescription("This sets the message channel. If the message channel is in another server, add the server ID.")
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('regular')
+                .setDescription('Set a message channel in this server')
+                .addChannelOption(option => option.setName('channel').setDescription('The message channel').setRequired(true)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('cross_server')
+                .setDescription('Set message channel in another server')
+                .addStringOption(option => option.setName('channel_id').setDescription('The channel ID').setRequired(true))
+                .addStringOption(option => option.setName('guild_id').setDescription('The server ID').setRequired(true))),
+	async execute(interaction) {
 
-        if (message.author.bot) return
-        const { content, channel, guild } = message
-        let text = content
-        const args = text.split(' ')
-        var guildId;
+        var guildId, messageChannelID;
+        console.log("holi!!!");
 
-        if (args.length < 1) {
-            return message.reply("Please insert the channel ID you wish to set the Message Channel to.")
+        if (interaction.options.getSubcommand() === 'regular') {
+            guildId = interaction.channel.guild.id;
+            messageChannelID = interaction.options.getChannel('channel').id;
         }
-
-        cid = channel.id
-        args.shift()
-
-        const chanID = args[0]
-        console.log(chanID)
-
-        if (args.length > 1) {
-            guildId = args[1]
+        else if (interaction.options.getSubcommand() === 'cross_server') {
+            messageChannelID = interaction.options.getString('channel_id');
+            guildId = interaction.options.getString('guild_id');
         }
-
-        const messageChannel = message.channel.guild.channels.cache.get(chanID);
-        
-        if (!messageChannel && !guildId){
-            return message.reply(`${chanID} is not a valid channel Id from this server. If this channel is from another server, please add the Server ID after the channel ID.`)
-        }
-        
-        if (!guildId){
-            guildId = guild.id
-        }
+        const cid = interaction.channel.id;
 
         console.log('INSERTING DATA INTO DATABASE')
-        messageChannelDB.write(cid, chanID, guildId);
+        messageChannelDB.write(cid, messageChannelID, guildId);
 
-        message.channel.send("You set the message channel to be: " + chanID)
-    }
-}
+        interaction.reply("You set the message channel to be: " + messageChannelID)
+	},
+};
