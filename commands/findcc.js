@@ -10,7 +10,7 @@ module.exports = {
                 .setRequired(true)),
 	async execute(interaction) {
         const options = interaction.options
-        const roleId = options.getChannel('role').id;
+        const roleId = options.getRole('role').id;
 
         console.log('FETCHING FROM DATABASE')
         ClassDB.getClassCodeByRoleID(roleId).then((result) => {

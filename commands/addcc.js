@@ -61,9 +61,10 @@ module.exports = {
         console.log(classChannel.type);
         if (classChannel.type == "GUILD_TEXT" && numberOfAssignments > 0){
             var addedChannelCorrectly = DiscordUtil.addHomeworkChannel(channelID, interaction, classCode)
-            if (addedChannelCorrectly){
-                interaction.channel.send(`Added channel ${channelMention(channelID)} (${channelID}) as a Homework channel`)
+            if (!addedChannelCorrectly){
+                return;
             }
+            interaction.channel.send(`Added channel ${channelMention(channelID)} (${channelID}) as a Homework channel`)
         }                                                                    
 
         
