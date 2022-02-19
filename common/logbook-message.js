@@ -10,7 +10,7 @@ module.exports = class LogBookMessage {
         var engDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
         var korDays = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
         var monNum = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
-        var months = ['January', 'Febuary', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'Novemeber', 'December']
+        var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
         var meridian;
         var cstDate = "";
 
@@ -69,13 +69,15 @@ module.exports = class LogBookMessage {
         const suffix = " cont."
         var numberOfMessages = Math.ceil(str.length / max);
         var messages = [];
+        var start = 0;
         for (var i = 0; i < numberOfMessages; i++) {
-            var start = i*(max - suffix.length);
             if (i == numberOfMessages - 1){
-                var message = `${str.substr(start, str.substr(start, start + max).lastIndexOf(' '))}`
+                var message = `${str.substr(start)}\n`;
             }
             else {
-                var message = `${str.substr(start, str.substr(start, start + max - suffix.length).lastIndexOf(' '))}\n${suffix}`
+                var end = start + str.substr(start, max - suffix.length).lastIndexOf(' ');
+                var message = `${str.slice(start, end)}\n${suffix}`;
+                start = end + 1;
             }
             messages.push(message);
         }
@@ -102,7 +104,7 @@ module.exports = class LogBookMessage {
             //let role = message.guild.roles.find(r => r.name === );
             tagRole = `<@&${this.classInfo.assignedRole}>`
         }
-        this.messageChannel.send(`LOGBOOK: ${this.classInfo.title}\n ${tagRole}\n${dateMessage}\n\n${this.desc}\n${this.extra}`);
+        this.messageChannel.send(`LOGBOOK: ${this.classInfo.title}\n ${tagRole}\n${dateMessage}\n\n${this.desc}\n`);
     }
 
 }

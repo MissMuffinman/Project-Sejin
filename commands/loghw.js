@@ -9,6 +9,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('loghw')
 		.setDescription('Log a class in the message channel.')
+        .setDefaultPermission(false)
         .addStringOption(option =>
             option.setName('class_code')
                 .setDescription('The class code for the class')
@@ -46,7 +47,10 @@ module.exports = {
         let endTime = options.getString('end_time');
         const classCode = options.getString('class_code')
         const desc = options.getString('description')
-        const hwDesc = options.getString('hw_description')
+        var hwDesc = options.getString('hw_description')
+        if(!hwDesc){
+            hwDesc = 'Assignment "number"';
+        }
 
         const dateValid = new DateValidator();
 
@@ -93,6 +97,7 @@ module.exports = {
 
                 HomeworkDB.read(classInfo.channelID, startDay, endDay, classCode)
                 .then((result) => {
+                    console.log(result);
                   result.forEach(function (element) {
                       hwNumber = element.type.S
                       !(hwNumber in studentsIDs) && (studentsIDs[hwNumber] = [])
@@ -107,7 +112,7 @@ module.exports = {
                     
                     const logmessage = new HomeworkLogBook(messageChannel, classInfo, desc, Object.keys(studentsIDs).length, hwDesc);
                     classSize = logmessage.getMapSize(studentsIDs);
-                    logmessage.sendLogBookMessage(studentsIDs, classSize);
+                    logmessage.sendLogBookMessage(studentsIDs);
                     interaction.reply("Logbook posted!")
                 });
             });          

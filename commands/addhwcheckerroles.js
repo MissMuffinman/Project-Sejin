@@ -1,35 +1,24 @@
+const { SlashCommandBuilder, roleMention } = require('@discordjs/builders');
+
+
 module.exports = {
-    commands: 'addhwcheckerroles',
-    callback:  async (message) => {
+	data: new SlashCommandBuilder()
+		.setName('addhwcheckerrole')
+		.setDescription('Add a role for being a homework checker')
+		.setDefaultPermission(false)
+		.addRoleOption(option =>
+            option.setName('role')
+                .setDescription('The role that checks homework')
+                .setRequired(true)),
+		async execute(interaction) {
+		const options = interaction.options
+		const roleID = options.getRole('role').id;
 
-        if (message.author.bot) return
-
-        const { content } = message
-
-        let text = content
-        const args = text.split(' ')
-
-        console.log(text)
-
-        if (args.length < 2) {
-            return message.reply("Please insert the role ID.")
-        }
-
-        args.shift()
-        roleIDs = args
-
-        
-        
-        const emoji = message.guild.emojis.cache.find(emoji => emoji.name === "purple_check_mark"); // first, get the emoji
-        
-        if (roleIDs.length == 1){
-            //console.log(message.guild.roles.cache.get(roleIDs[0]).permissions.toArray());
-            emoji.roles.add([roleIDs[0]]);
-            message.channel.send(`You set the role <@&${roleIDs[0]}> to be a homework checker.`)
-        }
-        else {
-            emoji.roles.add(roleIDs);
-            message.channel.send(`You set the roles <@&${roleIDs.join('> <@&')}> to be homework checkers.`)
-        }
-    }
-}
+		const emoji = interaction.guild.emojis.cache.find(emoji => emoji.name === "army_feels"); // first, get the emoji
+		console.log("Emojis here!!");
+		await emoji.roles.add([roleID]).then(()=>{
+			console.log(emoji.roles);
+			interaction.reply(`You set the role ${roleMention(roleID)} to be a homework checker.`)
+		});
+	},
+};

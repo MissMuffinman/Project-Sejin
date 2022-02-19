@@ -1,34 +1,24 @@
+const { SlashCommandBuilder, roleMention } = require('@discordjs/builders');
+
+
 module.exports = {
-    commands: 'removehwcheckerroles',
-    callback:  async (message) => {
+	data: new SlashCommandBuilder()
+		.setName('removehwcheckerrole')
+		.setDescription('Remove a role for being a homework checker')
+		.setDefaultPermission(false)
+		.addRoleOption(option =>
+            option.setName('role')
+                .setDescription('The role that checks homework')
+                .setRequired(true)),
+		async execute(interaction) {
+		const options = interaction.options
+		const roleID = options.getRole('role').id;
 
-        if (message.author.bot) return
-
-        const { content } = message
-
-        let text = content
-        const args = text.split(' ')
-
-        console.log(text)
-
-        if (args.length < 2) {
-            return message.reply("Please insert the role ID.")
-        }
-
-        args.shift()
-        roleIDs = args
-
-        
-        const emoji = message.guild.emojis.cache.find(emoji => emoji.name === "purple_check_mark"); // first, get the emoji
-        if (roleIDs.length == 1){
-            //emoji.roles.remove([roleIDs[0]]);
-            emoji.roles.remove([roleIDs[0]]);
-            message.channel.send(`The role <@&${roleIDs[0]}> is no longer a homework checker.`)
-        }
-        else {
-            //emoji.roles.remove(roleIDs);
-            emoji.roles.remove(roleIDs);
-            message.channel.send(`The roles <@&${roleIDs.join('> <@&')}> are no longer homework checkers.`)
-        }
-    }
-}
+		const emoji = interaction.guild.emojis.cache.find(emoji => emoji.name === "army_feels"); // first, get the emoji
+		//console.log(emoji);
+		console.log("Emoji roles here!!");
+		console.log(emoji.roles);
+		emoji.roles.remove(roleID);
+		interaction.reply(`You removed the role ${roleMention(roleID)} from being a homework checker.`)
+	},
+};

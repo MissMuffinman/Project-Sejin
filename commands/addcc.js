@@ -5,6 +5,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('addcc')
 		.setDescription('Add a class to the db.')
+        .setDefaultPermission(false)
         .addStringOption(option =>
             option.setName('class_code')
                 .setDescription('The class code for the class')
@@ -37,7 +38,8 @@ module.exports = {
                 .setDescription('The number of assignments for the class. Add 0 if there are no assignments.')
                 .setRequired(true)),
 	async execute(interaction) {
-        const options = interaction.options
+        const validHWChannels = ["GUILD_TEXT", "GUILD_PUBLIC_THREAD", "GUILD_PRIVATE_THREAD"]
+        const options = interaction.options;
         const channelID = options.getChannel('channel').id;
         const roleID = options.getRole('role').id;
         const classTitle = options.getString('title');
@@ -51,7 +53,7 @@ module.exports = {
         console.log(sID);
         
 
-        if (classChannel.type == "text" && numberOfAssignments == 0 && ['full_class', 'hw'].includes(type)){
+        if (validHWChannels.includes(classChannel.type) && numberOfAssignments == 0 && ['full_class', 'hw'].includes(type)){
             return interaction.reply(`${channelMention(channelID)} is a text channel. The number of assigments should be greater than 0.`)
         }
 
@@ -59,7 +61,7 @@ module.exports = {
         ClassDB.write(sID, roleID, channelID, classCode, classTitle, imageUrl, numberOfAssignments.toString())
 
         console.log(classChannel.type);
-        if (classChannel.type == "GUILD_TEXT" && numberOfAssignments > 0){
+        if (validHWChannels.includes(classChannel.type) && numberOfAssignments > 0){
             var addedChannelCorrectly = DiscordUtil.addHomeworkChannel(channelID, interaction, classCode)
             if (!addedChannelCorrectly){
                 return;
