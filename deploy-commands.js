@@ -21,6 +21,7 @@ const rest = new REST({ version: '9' }).setToken(token);
 			{ body: commands },
 		);
 
+		await setCommandPermissions(createdCommands);
 		console.log('Successfully registered application commands.');
 	} catch (error) {
 		console.error(error);

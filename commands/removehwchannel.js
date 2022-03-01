@@ -4,6 +4,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('removehwchannel')
 		.setDescription('Remove a homework channel')
+        .setDefaultPermission(false)
         .addChannelOption(option =>
             option.setName('channel')
                 .setDescription('The channel')

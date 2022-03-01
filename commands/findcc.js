@@ -4,6 +4,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('findcc')
 		.setDescription('Find a classcode using a role')
+        .setDefaultPermission(false)
         .addRoleOption(option =>
             option.setName('role')
                 .setDescription('The role of the class')

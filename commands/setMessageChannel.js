@@ -5,6 +5,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('setmessagechannel')
 		.setDescription("This sets the message channel. If the message channel is in another server, add the server ID.")
+        .setDefaultPermission(false)
         .addSubcommand(subcommand =>
             subcommand
                 .setName('regular')

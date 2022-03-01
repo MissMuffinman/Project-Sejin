@@ -4,6 +4,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('addhwchannel')
 		.setDescription('Add a homework channel to a class')
+        .setDefaultPermission(false)
         .addStringOption(option =>
             option.setName('class_code')
                 .setDescription('The class code for the class')
