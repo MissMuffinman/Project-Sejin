@@ -10,7 +10,7 @@ module.exports = {
             option.setName('class_code')
                 .setDescription('The class code for the class')
                 .setRequired(true))
-        .addChannelOption(option =>
+        .addStringOption(option =>
             option.setName('channel')
                 .setDescription('The channel')
                 .setRequired(true))
@@ -40,36 +40,43 @@ module.exports = {
 	async execute(interaction) {
         const validHWChannels = ["GUILD_TEXT", "GUILD_PUBLIC_THREAD", "GUILD_PRIVATE_THREAD"]
         const options = interaction.options;
-        const channelID = options.getChannel('channel').id;
+        const channelIDs = options.getString('channel');
         const roleID = options.getRole('role').id;
         const classTitle = options.getString('title');
         const classCode = options.getString('class_code')
         const imageUrl = options.getString('image_url')
         const type = options.getString('type')
         const numberOfAssignments = options.getInteger('number_of_assignments')
+
+        await interaction.deferReply()
+
+        const validateChannel = (classChannel) => {
+            if (validHWChannels.includes(classChannel.type) && numberOfAssignments == 0 && ['full_class', 'hw'].includes(type)){
+                return interaction.followUp(`${channelMention(classChannel)} is a text channel. The number of assigments should be greater than 0.`)
+            }
+            console.log(classChannel.type);
+            if (validHWChannels.includes(classChannel.type)){
+                var addedChannelCorrectly = DiscordUtil.addHomeworkChannel(classChannel.id, interaction, classCode)
+                if (!addedChannelCorrectly){
+                    return;
+                }
+                interaction.channel.send(`Added channel ${classChannel} (${classChannel.id}) as a Homework channel`)
+            }     
+        }
         
-        const classChannel = options.getChannel('channel');
+        
+        allChannelIDs = channelIDs.split(" ")  
+        allChannelIDs.forEach(hwChannelID => {
+            var hwChannel = interaction.channel.guild.channels.cache.get(hwChannelID); 
+            validateChannel(hwChannel);  
+        }) 
+        const classChannel = interaction.channel.guild.channels.cache.get(allChannelIDs[0]);
         const sID = classChannel.guild.id;
         console.log(sID);
         
-
-        if (validHWChannels.includes(classChannel.type) && numberOfAssignments == 0 && ['full_class', 'hw'].includes(type)){
-            return interaction.reply(`${channelMention(channelID)} is a text channel. The number of assigments should be greater than 0.`)
-        }
-
         console.log('INSERTING DATA INTO DATABASE')
-        ClassDB.write(sID, roleID, channelID, classCode, classTitle, imageUrl, numberOfAssignments.toString())
-
-        console.log(classChannel.type);
-        if (validHWChannels.includes(classChannel.type) && numberOfAssignments > 0){
-            var addedChannelCorrectly = DiscordUtil.addHomeworkChannel(channelID, interaction, classCode)
-            if (!addedChannelCorrectly){
-                return;
-            }
-            interaction.channel.send(`Added channel ${channelMention(channelID)} (${channelID}) as a Homework channel`)
-        }                                                                    
-
+        ClassDB.write(sID, roleID, channelIDs, classCode, classTitle, imageUrl, numberOfAssignments.toString())
         
-		return interaction.reply("You set " + classCode + " to be the class code for " + roleMention(roleID) + "\n The class title is: " + classTitle + "\nThe class image is: " + imageUrl)
+		return interaction.followUp("You set " + classCode + " to be the class code for " + roleMention(roleID) + "\n The class title is: " + classTitle + "\nThe class image is: " + imageUrl)
 	},
 };

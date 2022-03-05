@@ -20,11 +20,14 @@ client.once('ready', () => {
 });
 
 client.on('interactionCreate', async interaction => {
-	console.log(interaction.memberPermissionsuser);
 	if (interaction.memberPermissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
 		console.log('This member is admin');
 	}
-
+	if (interaction.isContextMenu()) {
+        await interaction.deferReply({ ephemeral: false });
+        const command = client.commands.get(interaction.commandName);
+        if (command) command.execute(interaction);
+    }
 	if (!interaction.isCommand()) return;
 	const command = client.commands.get(interaction.commandName);
 
@@ -52,13 +55,12 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	if (user.id === client.user.id){
 		return;
 	}
-	console.log(Object.keys(hwChannels.ids));
 	if (!Object.keys(hwChannels.ids).includes(reaction.message.channel.id)){
 		return;
 	}
 	const classCode = hwChannels.ids[reaction.message.channel.id];
-
-	if (reaction.emoji.name === 'purple_check_mark' && reaction.message.channel.type === 'GUILD_TEXT') {
+	const validHWChannels = ["GUILD_TEXT", "GUILD_PUBLIC_THREAD", "GUILD_PRIVATE_THREAD"]
+	if (reaction.emoji.name === 'purple_check_mark' && validHWChannels.includes(reaction.message.channel.type)) {
 		const firstEmoji = reaction.message.reactions.cache.values().next().value._emoji.name;
 		emojiName = getNameOfEmoji(firstEmoji);
 		if (!emojiName) {

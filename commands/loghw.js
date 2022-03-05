@@ -9,14 +9,10 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('loghw')
 		.setDescription('Log a class in the message channel.')
-        .setDefaultPermission(false)
+        .setDefaultPermission(true)
         .addStringOption(option =>
             option.setName('class_code')
                 .setDescription('The class code for the class')
-                .setRequired(true))
-        .addStringOption(option =>
-            option.setName('description')
-                .setDescription('The description on the top of message')
                 .setRequired(true))
         .addStringOption(option =>
             option.setName('start_date')
@@ -35,6 +31,10 @@ module.exports = {
                 .setDescription('Add the time for when to top looking homework (Format HH:MM)')
                 .setRequired(true))
         .addStringOption(option =>
+            option.setName('description')
+                .setDescription('The description on the top of message')
+                .setRequired(false))        
+        .addStringOption(option =>
             option.setName('hw_description')
                 .setDescription('Description for each homework. Add "number" to include the number. Eg: Assigment #"number"')
                 .setRequired(false)),
@@ -46,12 +46,9 @@ module.exports = {
         let endDay = options.getString('end_date');
         let endTime = options.getString('end_time');
         const classCode = options.getString('class_code')
-        const desc = options.getString('description')
-        var hwDesc = options.getString('hw_description')
-        if(!hwDesc){
-            hwDesc = 'Assignment "number"';
-        }
-
+        const desc = options.getString('description') || ""
+        var hwDesc = options.getString('hw_description') || 'Assignment "number"';
+        
         const dateValid = new DateValidator();
 
         if (!dateValid.isValidDate(endDay) || ! dateValid.isValidDate(startDay) || !dateValid.isValidTime(startTime) || ! dateValid.isValidTime(endTime)) {
@@ -111,7 +108,6 @@ module.exports = {
                     messageChannel = guild.channels.cache.get(messageChannelID);
                     
                     const logmessage = new HomeworkLogBook(messageChannel, classInfo, desc, Object.keys(studentsIDs).length, hwDesc);
-                    classSize = logmessage.getMapSize(studentsIDs);
                     logmessage.sendLogBookMessage(studentsIDs);
                     interaction.reply("Logbook posted!")
                 });

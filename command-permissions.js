@@ -18,7 +18,7 @@
 const { Permissions } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const { clientId, guildId, botToken } = require('./config.json');
+const { clientId, guildId, token } = require('./config.json');
 
 const commandsWithPermissions = [
   // can MANAGE_ROLES and MANAGE_CHANNELS
@@ -27,17 +27,17 @@ const commandsWithPermissions = [
     roleNames: [
       'addcc',
       'addhwchannel',
-      'addhwcheckerroles',
+      'addhwcheckerrole',
       'setmessagechannel',
       'removehwchannel',
-      'removehwcheckerroles'
+      'removehwcheckerrole'
     ]
   },
 ];
 
 module.exports = {
   setCommandPermissions: async (commands) => {
-    const rest = new REST({ version: '9' }).setToken(botToken);
+    const rest = new REST({ version: '9' }).setToken(token);
     const filteredCommands = commands.filter(command => command.default_permission === false);
 
     const roles = await rest.get(
@@ -58,6 +58,7 @@ module.exports = {
         }
       })
       obj.roleNames.map(name => {
+        console.log(name);
         const comm = filteredCommands.find(command => command.name === name);
         permissionsBody.push({ id: comm.id, permissions: rolesWithPermissions });
       });
