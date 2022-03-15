@@ -30,7 +30,12 @@ const commandsWithPermissions = [
       'addhwcheckerrole',
       'setmessagechannel',
       'removehwchannel',
-      'removehwcheckerrole'
+      'removehwcheckerrole',
+      'addpermissions',
+      'findcc',
+      'removepermissions',
+      'log',
+      'loghw',
     ]
   },
 ];

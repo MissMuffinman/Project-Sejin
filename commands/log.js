@@ -7,6 +7,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('log')
 		.setDescription('Log a class in the message channel.')
+        .setDefaultPermission(false)
         .addStringOption(option =>
             option.setName('class_code')
                 .setDescription('The class code for the class')

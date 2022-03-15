@@ -19,7 +19,6 @@ module.exports = class HomeworkLogBook extends LogMessage {
             var key = Object.keys(names)[i]
             var hwDesc = this.hwDesc.replace('"number"', key) + " ";
             var list = this.mentionList(names[key]);
-            list = list.filter((v,i,a)=>a.findIndex(t=>(t.id===v.id))===i)
             fullMessage += hwDesc + list.join(" ") + " \n\n";
         }
         if (fullMessage.length > 2000) {
