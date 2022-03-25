@@ -64,7 +64,7 @@ module.exports = {
           permission: true
         }
       })
-      console.log(rolesWithPermissions);
+
       obj.roleNames.map(name => {
         console.log(name);
         const comm = filteredCommands.find(command => command.name === name);
