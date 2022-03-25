@@ -2,7 +2,6 @@ const { SlashCommandBuilder, roleMention, channelMention } = require('@discordjs
 const HomeworkDB = require('../database/homework-db')
 const ClassDB = require('../database/class-db')
 const messageChannelDB = require('../database/messageChannel-db')
-const HomeworkLogBook = require('../common/logbook-homework')
 const VCLogBook = require('../common/logbook-vc')
 const DateValidator = require('../common/logbook-date') 
 
@@ -93,7 +92,7 @@ module.exports = {
             console.log(names);
             
             if (names.length == 0) {
-                return interaction.reply(`There is no one on vc with role <@&${assignedRole}>`)
+                return interaction.reply(`There is no one on vc ${channelMention(room)} with role ${roleMention(assignedRole)}> <a:shookysad:949689086665437184>`)
             }
 
             //get LogBookChannel ID and GuildID of main server

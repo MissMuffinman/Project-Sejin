@@ -38,7 +38,7 @@ module.exports = {
                 .setDescription('The number of assignments for the class. Add 0 if there are no assignments.')
                 .setRequired(false)),
 	async execute(interaction) {
-        const validHWChannels = ["GUILD_TEXT", "GUILD_PUBLIC_THREAD", "GUILD_PRIVATE_THREAD"]
+
         const options = interaction.options;
         const channelIDs = options.getString('channel');
         const roleID = options.getRole('role').id;
@@ -50,23 +50,26 @@ module.exports = {
 
         await interaction.deferReply()
 
-        const validateChannel = (classChannel) => {
+        const validateChannel = (channel, channelID) => {
             const validChannels = {
                 'hw': ["GUILD_TEXT", "GUILD_PUBLIC_THREAD", "GUILD_PRIVATE_THREAD"],
                 'vc': ["GUILD_VOICE"],
-                'full_class': ["GUILD_TEXT", "GUILD_PUBLIC_THREAD", "GUILD_PRIVATE_THREAD", "GUILD_VOICE"]
+                'full_class': ["GUILD_VOICE"]
             }
-            console.log(classChannel.type);
-            if (!validChannels[type].includes(classChannel.type)){
-                interaction.followUp(`Channel type ${classChannel.type} is not valid for ${type} format`)
+            if(!channel){
+                interaction.followUp(`${channelID} is not a valid channel id`)
                 return false;
             }
-            if (['full_class', 'hw'].includes(type)){
-                var addedChannelCorrectly = DiscordUtil.addHomeworkChannel(classChannel.id, interaction, classCode)
+            if (!validChannels[type].includes(channel.type)){
+                interaction.followUp(`Channel type ${channel.type} is not valid for ${type} format. Valid formats are: ${validChannels[type].join(", ")}`)
+                return false;
+            }
+            if (['hw'].includes(type)){
+                var addedChannelCorrectly = DiscordUtil.addHomeworkChannel(channel.id, interaction, classCode)
                 if (!addedChannelCorrectly){
                     return false;
                 }
-                interaction.channel.send(`Added channel ${classChannel} (${classChannel.id}) as a Homework channel`)
+                interaction.channel.send(`Added channel ${channel} (${channel.id}) as a Homework channel`)
             }     
             return true;
         }
@@ -80,7 +83,7 @@ module.exports = {
         var validated = true;  
         allChannelIDs.forEach(hwChannelID => {
             var hwChannel = interaction.channel.guild.channels.cache.get(hwChannelID); 
-            if (!validateChannel(hwChannel)){
+            if (!validateChannel(hwChannel, hwChannelID)){
                 validated = false;
             }  
         }) 
