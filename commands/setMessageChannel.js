@@ -1,6 +1,8 @@
 const messageChannelDB = require('../database/messageChannel-db')
 
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { ChannelType } = require('discord-api-types/v9');
+
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('setmessagechannel')
@@ -10,7 +12,11 @@ module.exports = {
             subcommand
                 .setName('regular')
                 .setDescription('Set a message channel in this server')
-                .addChannelOption(option => option.setName('channel').setDescription('The message channel').setRequired(true)))
+                .addChannelOption(option => 
+                    option.setName('channel')
+                    .setDescription('The message channel')
+                    .addChannelTypes([ChannelType.GuildText, ChannelType.GuildPublicThread, ChannelType.GuildPrivateThread])
+                    .setRequired(true)))
         .addSubcommand(subcommand =>
             subcommand
                 .setName('cross_server')
@@ -20,7 +26,6 @@ module.exports = {
 	async execute(interaction) {
 
         var guildId, messageChannelID;
-        console.log("holi!!!");
 
         if (interaction.options.getSubcommand() === 'regular') {
             guildId = interaction.channel.guild.id;

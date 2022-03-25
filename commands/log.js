@@ -15,11 +15,11 @@ module.exports = {
         .addStringOption(option =>
             option.setName('description')
                 .setDescription('The description included in the logbook message')
-                .setRequired(true)),
+                .setRequired(false)),
 	async execute(interaction) {
         const options = interaction.options
         const classCode = options.getString('class_code')
-        const desc = options.getString('description')
+        const desc = options.getString('description') || "";
 
         if (classCode.length >= 7) {
             return interaction.reply("Class Code should have 6 characters.")
@@ -30,6 +30,11 @@ module.exports = {
 
         console.log('FETCHING FROM DATABASE')
         ClassDB.read(classCode).then((result) => {
+
+            if(!result){
+                return interaction.reply(`Class code ${classCode} not found. <a:shookysad:949689086665437184>`)
+            }
+
             classInfo = {
                 assignedRole: result.roleID.S,
                 channelID: result.channelID.S,
@@ -48,10 +53,10 @@ module.exports = {
             const vcServer = interaction.client.guilds.cache.get(vcServerID);
 
 
-            names = vcServer.channels.cache.get(room).members.filter(m => m.roles.cache.get(assignedRole)).map(m => m.user.id)
+            const names = vcServer.channels.cache.get(room).members.filter(m => m.roles.cache.get(assignedRole)).map(m => m.user.id)
 
             if (names.length == 0) {
-                return interaction.reply(`There is no one on vc with role <@&${assignedRole}>`)
+                return interaction.reply(`There is no one on vc ${channelMention(room)} with role ${roleMention(assignedRole)}> <a:shookysad:949689086665437184>`)
             }
             //get LogBookChannel ID and GuildID of main server
             messageChannelDB.read(interaction.channel.id).then((result) => {

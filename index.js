@@ -1,8 +1,17 @@
 const fs = require('fs');
-const { Client, Collection, Intents, Permissions } = require('discord.js');
+const { Client, Collection, Intents } = require('discord.js');
 const { token } = require('./config.json');
 
-const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_PRESENCES, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGE_REACTIONS ] });
+const client = new Client({ 
+	partials: ['MESSAGE', 'CHANNEL', 'REACTION'], 
+	intents: [
+		Intents.FLAGS.GUILDS, 
+		Intents.FLAGS.GUILD_PRESENCES, 
+		Intents.FLAGS.GUILD_MEMBERS, 
+		Intents.FLAGS.GUILD_MESSAGE_REACTIONS, 
+		Intents.FLAGS.GUILD_VOICE_STATES 
+	] 
+});
 
 const hwChannels = require('./hwchannels.json')
 const HomeworkDB = require('./database/homework-db')
@@ -20,11 +29,8 @@ client.once('ready', () => {
 });
 
 client.on('interactionCreate', async interaction => {
-	if (interaction.memberPermissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
-		console.log('This member is admin');
-	}
 	if (interaction.isContextMenu()) {
-        await interaction.deferReply({ ephemeral: false });
+        await interaction.deferReply({ ephemeral: true });
         const command = client.commands.get(interaction.commandName);
         if (command) command.execute(interaction);
     }

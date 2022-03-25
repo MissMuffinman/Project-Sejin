@@ -1,14 +1,15 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder, roleMention, channelMention } = require('@discordjs/builders');
 const HomeworkDB = require('../database/homework-db')
 const ClassDB = require('../database/class-db')
 const messageChannelDB = require('../database/messageChannel-db')
 const HomeworkLogBook = require('../common/logbook-homework')
+const VCLogBook = require('../common/logbook-vc')
 const DateValidator = require('../common/logbook-date') 
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('loghw')
-		.setDescription('Log a club in the message channel.')
+		.setName('loghwclass')
+		.setDescription('Log a class in the message channel.')
         .setDefaultPermission(false)
         .addStringOption(option =>
             option.setName('class_code')
@@ -33,21 +34,16 @@ module.exports = {
         .addStringOption(option =>
             option.setName('description')
                 .setDescription('The description on the top of message')
-                .setRequired(false))        
-        .addStringOption(option =>
-            option.setName('hw_description')
-                .setDescription('Description for each homework. Add "number" to include the number. Eg: Assigment #"number"')
                 .setRequired(false)),
 	async execute(interaction) {
-        const options = interaction.options
+        const options = interaction.options;
 
         let startDay = options.getString('start_date');
         let startTime = options.getString('start_time');
         let endDay = options.getString('end_date');
         let endTime = options.getString('end_time');
-        const classCode = options.getString('class_code')
-        const desc = options.getString('description') || ""
-        var hwDesc = options.getString('hw_description') || 'Assignment "number"';
+        const classCode = options.getString('class_code');
+        const desc = options.getString('description') || "";
         
         const dateValid = new DateValidator();
 
@@ -64,18 +60,14 @@ module.exports = {
         startDay = periodDayTimes[0];
         endDay = periodDayTimes[1];
 
-        let studentsIDs = {};
+        let studentsSubmittedHw = [];
 
         console.log('FETCHING FROM DATABASE')
 
-        // Get information from the class using ClassCodeID        
+        // Get information from the class using ClassCodeID
+                
 
         ClassDB.read(classCode).then((result) => {
-
-            if(!result){
-                return interaction.reply(`Class code ${classCode} not found. <a:shookysad:949689086665437184>`)
-            }
-
             classInfo = {
                 assignedRole: result.roleID.S,
                 channelID: result.channelID.S,
@@ -85,6 +77,24 @@ module.exports = {
             };
 
             console.log('DATA FETCHED')
+
+            const assignedRole = classInfo.assignedRole;
+            const room = classInfo.channelID;
+            
+            const vcServerID = classInfo.serverID;
+
+
+            const vcServer = interaction.client.guilds.cache.get(vcServerID);
+            
+            console.log(assignedRole);
+            console.log(room);
+            
+            const names = vcServer.channels.cache.get(room).members.filter(m => m.roles.cache.get(assignedRole)).map(m => m.user.id);
+            console.log(names);
+            
+            if (names.length == 0) {
+                return interaction.reply(`There is no one on vc with role <@&${assignedRole}>`)
+            }
 
             //get LogBookChannel ID and GuildID of main server
             messageChannelDB.read(interaction.channel.id).then((result) => {
@@ -101,19 +111,20 @@ module.exports = {
                 .then((result) => {
                     console.log(result);
                   result.forEach(function (element) {
-                      hwNumber = element.type.S
-                      !(hwNumber in studentsIDs) && (studentsIDs[hwNumber] = [])
-                      studentsIDs[hwNumber].push(element.studentID.S);
+                      studentsSubmittedHw.push(element.studentID.S);
                     });
-                    console.log('DATA FETCHED', Object.keys(studentsIDs).length)
-                    if (Object.keys(studentsIDs).length == 0) {
+                    console.log('DATA FETCHED ', Object.keys(studentsSubmittedHw).length)
+                    if (Object.keys(studentsSubmittedHw).length == 0) {
                         return interaction.reply("There was no homework submitted during this time period.")
                     }
                                         
                     messageChannel = guild.channels.cache.get(messageChannelID);
+
+                    const finalNames = names.filter(name => studentsSubmittedHw.includes(name));
                     
-                    const logmessage = new HomeworkLogBook(messageChannel, classInfo, desc, Object.keys(studentsIDs).length, hwDesc);
-                    logmessage.sendLogBookMessage(studentsIDs);
+                    const logmessage = new VCLogBook(messageChannel, classInfo, desc);
+                    classSize = logmessage.getMapSize(finalNames);
+                    logmessage.sendLogBookMessage(finalNames, classSize);
                     interaction.reply("Logbook posted!")
                 });
             });          

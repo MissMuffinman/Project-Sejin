@@ -17,8 +17,9 @@
 
 const { Permissions } = require('discord.js');
 const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord-api-types/v9');
+const { Routes, ApplicationCommandPermissionType } = require('discord-api-types/v9');
 const { clientId, guildId, token } = require('./config.json');
+const customPermissions = require('./customPermissions.json');
 
 const commandsWithPermissions = [
   // can MANAGE_ROLES and MANAGE_CHANNELS
@@ -36,6 +37,7 @@ const commandsWithPermissions = [
       'removepermissions',
       'log',
       'loghw',
+      'loghwclass',
     ]
   },
 ];
@@ -58,14 +60,20 @@ module.exports = {
       }).map(role => {
         return {
           id: role.id,
-          type: 1, // ROLE
+          type: ApplicationCommandPermissionType.Role,
           permission: true
         }
       })
+      console.log(rolesWithPermissions);
       obj.roleNames.map(name => {
         console.log(name);
         const comm = filteredCommands.find(command => command.name === name);
-        permissionsBody.push({ id: comm.id, permissions: rolesWithPermissions });
+        if(comm.id in customPermissions){
+          permissionsBody.push({ id: comm.id, permissions: rolesWithPermissions.concat(customPermissions[comm.id].permissions) });
+        }
+        else {
+          permissionsBody.push({ id: comm.id, permissions: rolesWithPermissions });
+        }
       });
     });
 

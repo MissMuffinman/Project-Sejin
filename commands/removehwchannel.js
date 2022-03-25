@@ -1,5 +1,7 @@
 const DiscordUtil = require('../common/discordutil.js');
 const { SlashCommandBuilder} = require('@discordjs/builders');
+const { ChannelType } = require('discord-api-types/v9');
+
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('removehwchannel')
@@ -8,17 +10,18 @@ module.exports = {
         .addChannelOption(option =>
             option.setName('channel')
                 .setDescription('The channel')
+                .addChannelTypes([ChannelType.GuildText, ChannelType.GuildPublicThread, ChannelType.GuildPrivateThread])
                 .setRequired(true)),
 	async execute(interaction) {
         const options = interaction.options
         const channelID = options.getChannel('channel').id;
 
+        await interaction.deferReply()
+
         console.log('SAVING NEW CHANNEL')
         var removedChannelCorrectly = DiscordUtil.removeHomeworkChannel(channelID, interaction)
         if (removedChannelCorrectly){
-            return interaction.reply(`Removed channel <#${channelID}> (${channelID}) as a Homework channel`)
+            return interaction.followUp(`Removed channel <#${channelID}> (${channelID}) as a Homework channel`)
         }
-        
-		return interaction.reply("There was a problem removeing this channel to the class.")
 	},
 };

@@ -36,40 +36,58 @@ module.exports = {
         .addIntegerOption(option =>
             option.setName('number_of_assignments')
                 .setDescription('The number of assignments for the class. Add 0 if there are no assignments.')
-                .setRequired(true)),
+                .setRequired(false)),
 	async execute(interaction) {
         const validHWChannels = ["GUILD_TEXT", "GUILD_PUBLIC_THREAD", "GUILD_PRIVATE_THREAD"]
         const options = interaction.options;
         const channelIDs = options.getString('channel');
         const roleID = options.getRole('role').id;
         const classTitle = options.getString('title');
-        const classCode = options.getString('class_code')
-        const imageUrl = options.getString('image_url')
-        const type = options.getString('type')
-        const numberOfAssignments = options.getInteger('number_of_assignments')
+        const classCode = options.getString('class_code');
+        const imageUrl = options.getString('image_url');
+        const type = options.getString('type');
+        const numberOfAssignments = options.getInteger('number_of_assignments') || 0;
 
         await interaction.deferReply()
 
         const validateChannel = (classChannel) => {
-            if (validHWChannels.includes(classChannel.type) && numberOfAssignments == 0 && ['full_class', 'hw'].includes(type)){
-                return interaction.followUp(`${channelMention(classChannel)} is a text channel. The number of assigments should be greater than 0.`)
+            const validChannels = {
+                'hw': ["GUILD_TEXT", "GUILD_PUBLIC_THREAD", "GUILD_PRIVATE_THREAD"],
+                'vc': ["GUILD_VOICE"],
+                'full_class': ["GUILD_TEXT", "GUILD_PUBLIC_THREAD", "GUILD_PRIVATE_THREAD", "GUILD_VOICE"]
             }
             console.log(classChannel.type);
-            if (validHWChannels.includes(classChannel.type)){
+            if (!validChannels[type].includes(classChannel.type)){
+                interaction.followUp(`Channel type ${classChannel.type} is not valid for ${type} format`)
+                return false;
+            }
+            if (['full_class', 'hw'].includes(type)){
                 var addedChannelCorrectly = DiscordUtil.addHomeworkChannel(classChannel.id, interaction, classCode)
                 if (!addedChannelCorrectly){
-                    return;
+                    return false;
                 }
                 interaction.channel.send(`Added channel ${classChannel} (${classChannel.id}) as a Homework channel`)
             }     
+            return true;
         }
         
+        if(type == "hw" && numberOfAssignments == 0){
+            interaction.followUp(`For a club, the number of assigments should be greater than 0. <a:shookysad:949689086665437184>`)
+            return;
+        }
         
-        allChannelIDs = channelIDs.split(" ")  
+        allChannelIDs = channelIDs.split(" ");
+        var validated = true;  
         allChannelIDs.forEach(hwChannelID => {
             var hwChannel = interaction.channel.guild.channels.cache.get(hwChannelID); 
-            validateChannel(hwChannel);  
+            if (!validateChannel(hwChannel)){
+                validated = false;
+            }  
         }) 
+        if(!validated){
+            return;
+        }
+
         const classChannel = interaction.channel.guild.channels.cache.get(allChannelIDs[0]);
         const sID = classChannel.guild.id;
         console.log(sID);
