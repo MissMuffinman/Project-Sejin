@@ -1,61 +1,103 @@
 const ClassDB = require('../database/class-db')
 const DiscordUtil = require('../common/discordutil.js');
-
+const { SlashCommandBuilder, roleMention, channelMention } = require('@discordjs/builders');
 module.exports = {
-    commands: 'addcc',
-    callback:  async (message) => {
+	data: new SlashCommandBuilder()
+		.setName('addcc')
+		.setDescription('Add a class to the db.')
+        .setDefaultPermission(false)
+        .addStringOption(option =>
+            option.setName('class_code')
+                .setDescription('The class code for the class')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('channel')
+                .setDescription('The channel')
+                .setRequired(true))
+        .addRoleOption(option =>
+            option.setName('role')
+                .setDescription('The role for the class')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('title')
+                .setDescription('The title for the class')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('image_url')
+                .setDescription('The image url for the class')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('type')
+                .setDescription('The type of class')
+                .addChoice('Class + HW', 'full_class')
+                .addChoice('Only meetings', 'vc')
+                .addChoice('Only assigments (club)', 'hw')
+                .setRequired(true))
+        .addIntegerOption(option =>
+            option.setName('number_of_assignments')
+                .setDescription('The number of assignments for the class. Add 0 if there are no assignments.')
+                .setRequired(false)),
+	async execute(interaction) {
 
-        if (message.author.bot) return
+        const options = interaction.options;
+        const channelIDs = options.getString('channel');
+        const roleID = options.getRole('role').id;
+        const classTitle = options.getString('title');
+        const classCode = options.getString('class_code');
+        const imageUrl = options.getString('image_url');
+        const type = options.getString('type');
+        const numberOfAssignments = options.getInteger('number_of_assignments') || 0;
 
-        const { content } = message
+        await interaction.deferReply()
 
-        let text = content
-        const args = text.split(' ')
-
-        console.log(text)
-
-        if (args.length < 5) {
-            return message.reply("Please insert the class ID, classroom ID, the class code, title, number of assignments and image.")
-        }
-
-        args.shift()
-        rID = args[0]
-        cID = args[1]
-        cc = args[2]
-        classTitle = args[3]
-        var numberOfHomeworks = args[4];
-        url = args[5]
-        var sID;
-        console.log(args.length);
-
-        if (args.length > 5) {
-            sID = args[6]
-        }
-
-        allChannelIDs = cID.split("_")  
-        allChannelIDs.forEach(hwChannelID => {
-            var hwChannel = message.channel.guild.channels.cache.get(hwChannelID); 
-            if (!hwChannel && !sID) {
-                return message.reply(`${hwChannelID} is not a valid channel Id from this server. If this channel is from another server, please add the Server ID after the image link.`)
+        const validateChannel = (channel, channelID) => {
+            const validChannels = {
+                'hw': ["GUILD_TEXT", "GUILD_PUBLIC_THREAD", "GUILD_PRIVATE_THREAD"],
+                'vc': ["GUILD_VOICE"],
+                'full_class': ["GUILD_VOICE"]
             }
-            if (hwChannel && hwChannel.type == "text" && numberOfHomeworks == 0) {
-                return message.reply(`<#${cID}> is a text channel. The number of assigments should be greater than 0.`)
+            if(!channel){
+                interaction.followUp(`${channelID} is not a valid channel id`)
+                return false;
             }
-            if (numberOfHomeworks > 0){
-                var addedChannelCorrectly = DiscordUtil.addHomeworkChannel(hwChannelID, message, cc)
-                if (addedChannelCorrectly){
-                    message.channel.send(`Added channel <#${hwChannelID}> (${hwChannelID}) as a Homework channel`)
+            if (!validChannels[type].includes(channel.type)){
+                interaction.followUp(`Channel type ${channel.type} is not valid for ${type} format. Valid formats are: ${validChannels[type].join(", ")}`)
+                return false;
+            }
+            if (['hw'].includes(type)){
+                var addedChannelCorrectly = DiscordUtil.addHomeworkChannel(channel.id, interaction, classCode)
+                if (!addedChannelCorrectly){
+                    return false;
                 }
+                interaction.channel.send(`Added channel ${channel} (${channel.id}) as a Homework channel`)
+            }     
+            return true;
+        }
+        
+        if(type == "hw" && numberOfAssignments == 0){
+            interaction.followUp(`For a club, the number of assigments should be greater than 0. <a:shookysad:949689086665437184>`)
+            return;
+        }
+        
+        allChannelIDs = channelIDs.split(" ");
+        var validated = true;  
+        allChannelIDs.forEach(hwChannelID => {
+            var hwChannel = interaction.channel.guild.channels.cache.get(hwChannelID); 
+            if (!validateChannel(hwChannel, hwChannelID)){
+                validated = false;
             }  
-        })
-
-        if (!sID){
-            sID = message.guild.id;
+        }) 
+        if(!validated){
+            return;
         }
 
+        const classChannel = interaction.channel.guild.channels.cache.get(allChannelIDs[0]);
+        const sID = classChannel.guild.id;
+        console.log(sID);
+        
         console.log('INSERTING DATA INTO DATABASE')
-        ClassDB.write(sID, rID, cID, cc, classTitle, url, numberOfHomeworks.toString())
-
-        message.channel.send("You set " + cc + " to be the class code for <@&" + rID + ">\nThe class title is: " + classTitle + "\nThe class image is: " + url)
-    }
-}
+        ClassDB.write(sID, roleID, channelIDs, classCode, classTitle, imageUrl, numberOfAssignments.toString())
+        
+		return interaction.followUp("You set " + classCode + " to be the class code for " + roleMention(roleID) + "\n The class title is: " + classTitle + "\nThe class image is: " + imageUrl)
+	},
+};

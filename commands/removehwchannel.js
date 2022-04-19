@@ -1,29 +1,27 @@
 const DiscordUtil = require('../common/discordutil.js');
+const { SlashCommandBuilder} = require('@discordjs/builders');
+const { ChannelType } = require('discord-api-types/v9');
 
 module.exports = {
-    commands: 'removehwchannel',
-    callback:  async (message) => {
+	data: new SlashCommandBuilder()
+		.setName('removehwchannel')
+		.setDescription('Remove a homework channel')
+        .setDefaultPermission(false)
+        .addChannelOption(option =>
+            option.setName('channel')
+                .setDescription('The channel')
+                .addChannelTypes([ChannelType.GuildText, ChannelType.GuildPublicThread, ChannelType.GuildPrivateThread])
+                .setRequired(true)),
+	async execute(interaction) {
+        const options = interaction.options
+        const channelID = options.getChannel('channel').id;
 
-        if (message.author.bot) return
-
-        const { content } = message
-
-        let text = content
-        const args = text.split(' ')
-
-        console.log(text)
-
-        if (args.length < 2) {
-            return message.reply("Please insert the channel ID.")
-        }
-
-        args.shift()
-        channelID = args[0]
+        await interaction.deferReply()
 
         console.log('SAVING NEW CHANNEL')
-        var addedChannelCorrectly = DiscordUtil.removeHomeworkChannel(channelID, message)
-        if (addedChannelCorrectly){
-            message.channel.send(`Removed channel <#${channelID}> (${channelID}) as a Homework channel`)
+        var removedChannelCorrectly = DiscordUtil.removeHomeworkChannel(channelID, interaction)
+        if (removedChannelCorrectly){
+            return interaction.followUp(`Removed channel <#${channelID}> (${channelID}) as a Homework channel`)
         }
-    }
-}
+	},
+};

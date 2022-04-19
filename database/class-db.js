@@ -1,5 +1,4 @@
 const AWS = require("aws-sdk");
-const { Message } = require("discord.js");
 
 async function read(classCode) {
   try {
