@@ -38,6 +38,7 @@ const commandsWithPermissions = [
       'log',
       'loghw',
       'loghwclass',
+      'addalumniroles',
     ]
   },
 ];
