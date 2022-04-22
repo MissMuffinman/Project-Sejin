@@ -23,17 +23,13 @@ module.exports = {
         await interaction.deferReply();
 
         if (classCode.length >= 7) {
-            return interaction.reply("Class Code should have 6 characters.")
+            return interaction.editReply("Class Code should have 6 characters.")
         }
 
-        console.log(interaction.channel.guild.id)
-        console.log(interaction.client);
-
-        console.log('FETCHING FROM DATABASE')
         ClassDB.read(classCode).then((result) => {
 
             if(!result){
-                return interaction.reply(`Class code ${classCode} not found. <a:shookysad:949689086665437184>`)
+                return interaction.editReply(`Class code ${classCode} not found. <a:shookysad:949689086665437184>`)
             }
 
             classInfo = {
@@ -44,7 +40,6 @@ module.exports = {
                 serverID: result.serverID.S
             };
 
-            console.log('DATA FETCHED')
             const assignedRole = classInfo.assignedRole
             const room = classInfo.channelID
             
@@ -53,10 +48,10 @@ module.exports = {
 
             const vcServer = interaction.client.guilds.cache.get(vcServerID);
 
-            const members = vcServer.channels.cache.get(room).members.filter(m => m.roles.cache.get(assignedRole))//.map(m => m.user.id)
+            const members = vcServer.channels.cache.get(room).members.filter(m => m.roles.cache.get(assignedRole))
 
             if (members.length == 0) {
-                return interaction.followUp({ content:`There is no one on vc ${channelMention(room)} with role ${roleMention(assignedRole)}> <a:shookysad:949689086665437184>`})
+                return interaction.editReply(`There is no one on vc ${channelMention(room)} with role ${roleMention(assignedRole)}> <a:shookysad:949689086665437184>`)
             }
 
             let membersWithRole = '';
@@ -65,7 +60,7 @@ module.exports = {
                 membersWithRole += `<@${member.user.id}>\n`;
             });
             const attachment = new MessageAttachment(Buffer.from(membersWithRole, 'utf-8'), 'usersID.txt');
-            return interaction.followUp({ content: `Added role ${roleToAssign} to ${roleMention(assignedRole)} class users in VC ${channelMention(room)}`, files: [attachment] });
+            return interaction.editReply({ content: `Added role ${roleToAssign} to ${roleMention(assignedRole)} class users in VC ${channelMention(room)}`, files: [attachment] });
         });
 	},
 };
