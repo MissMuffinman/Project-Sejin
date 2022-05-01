@@ -11,9 +11,9 @@ module.exports = class VCLogBook extends LogMessage {
 
         this.sendFirstPartOfLogbookMessage()
         var list = this.mentionList(names);
-
-        this.sendStudentsUsernamesByGroup(list, this.messageChannel, classSize)
-
+        if (list.length > 0){
+            this.sendStudentsUsernamesByGroup(list, this.messageChannel, classSize)
+        }
         messageChannel.send({ files: [this.classInfo.img] })
 
     }

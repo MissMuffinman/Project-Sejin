@@ -21,8 +21,10 @@ module.exports = {
         const classCode = options.getString('class_code')
         const desc = options.getString('description') || "";
 
+        await interaction.deferReply();
+
         if (classCode.length >= 7) {
-            return interaction.reply("Class Code should have 6 characters.")
+            return interaction.followUp("Class Code should have 6 characters.")
         }
 
         console.log(interaction.channel.guild.id)
@@ -32,7 +34,7 @@ module.exports = {
         ClassDB.read(classCode).then((result) => {
 
             if(!result){
-                return interaction.reply(`Class code ${classCode} not found. <a:shookysad:949689086665437184>`)
+                return interaction.followUp(`Class code ${classCode} not found. <a:shookysad:949689086665437184>`)
             }
 
             classInfo = {
@@ -56,7 +58,7 @@ module.exports = {
             const names = vcServer.channels.cache.get(room).members.filter(m => m.roles.cache.get(assignedRole)).map(m => m.user.id)
 
             if (names.length == 0) {
-                return interaction.reply(`There is no one on vc ${channelMention(room)} with role ${roleMention(assignedRole)}> <a:shookysad:949689086665437184>`)
+                 interaction.followUp(`There is no one on vc ${channelMention(room)} with role ${roleMention(assignedRole)} <a:shookysad:949689086665437184>`)
             }
             //get LogBookChannel ID and GuildID of main server
             messageChannelDB.read(interaction.channel.id).then((result) => {
@@ -70,8 +72,10 @@ module.exports = {
                                           
                 const logmessage = new VCLogBook(messageChannel, classInfo, desc);
                 classSize = logmessage.getMapSize(names);
-                logmessage.sendLogBookMessage(names, classSize);
-                interaction.reply("Logbook posted!")
+                if(desc.length > 0 || classSize > 0){
+                    logmessage.sendLogBookMessage(names, classSize);
+                    interaction.followUp("Logbook posted!")
+                }
             });          
         });
 
