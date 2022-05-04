@@ -3,3 +3,5 @@ node_modules
 config.json
 aws_config.json
 hwchannels.json
+.idea
+.idea/*
