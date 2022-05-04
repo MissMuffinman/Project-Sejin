@@ -50,11 +50,13 @@ module.exports = {
     },
 
     addHomeworkChannel(channelID, message, classCode){
+        console.log(channelID);
         if (channelID in file.ids){
-            message.reply(`Channel <#${channelID}> has already been added as a Homework Channel.`)
+            message.followUp(`Channel <#${channelID}> has already been added as a Homework Channel. <a:shookysad:949689086665437184>`)
             return false;
         }
         console.log('SAVING NEW CHANNEL')
+        console.log(channelID, classCode);
 
         file.ids[channelID] = classCode;
         this.writeToFile();
@@ -62,7 +64,7 @@ module.exports = {
     },
     removeHomeworkChannel(channelID, message){
         if (!(channelID in file.ids)){
-            message.reply(`Channel <#${channelID}> has not been added as a Homework Channel.`)
+            message.followUp(`Channel <#${channelID}> has not been added as a Homework Channel. <a:shookysad:949689086665437184>`)
             return false;
         }
         console.log('SAVING NEW CHANNEL')

@@ -1,30 +1,40 @@
 const DiscordUtil = require('../common/discordutil.js');
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const ClassDB = require('../database/class-db')
+const { ChannelType } = require('discord-api-types/v9');
 
 module.exports = {
-    commands: 'addhwchannel',
-    callback:  async (message) => {
+	data: new SlashCommandBuilder()
+		.setName('addhwchannel')
+		.setDescription('Add a homework channel to a class')
+        .setDefaultPermission(false)
+        .addStringOption(option =>
+            option.setName('class_code')
+                .setDescription('The class code for the class')
+                .setRequired(true))
+        .addChannelOption(option =>
+            option.setName('channel')
+                .setDescription('The channel')
+                .addChannelTypes([ChannelType.GuildText, ChannelType.GuildPublicThread, ChannelType.GuildPrivateThread])
+                .setRequired(true)),
+	async execute(interaction) {
+        const options = interaction.options
+        const channelID = options.getChannel('channel').id;
+        const classCode = options.getString('class_code');
 
-        if (message.author.bot) return
+        await interaction.deferReply()
 
-        const { content } = message
 
-        let text = content
-        const args = text.split(' ')
+        ClassDB.read(classCode).then((result) => {
+            if(!result){
+                return interaction.followUp({ content:`Class code ${classCode} not found. <a:shookysad:949689086665437184>`})
+            }
+            console.log('SAVING NEW CHANNEL')
+            var addedChannelCorrectly = DiscordUtil.addHomeworkChannel(channelID, interaction, classCode)
+            if (addedChannelCorrectly){
+                return interaction.followUp(`Added channel <#${channelID}> (${channelID}) as a Homework channel`)
+            }
+        })
 
-        console.log(text)
-
-        if (args.length < 2) {
-            return message.reply("Please insert the class code and the channel ID.")
-        }
-
-        args.shift()
-        cc = args[0]
-        channelID = args[1]
-
-        console.log('SAVING NEW CHANNEL')
-        var addedChannelCorrectly = DiscordUtil.addHomeworkChannel(channelID, message, cc)
-        if (addedChannelCorrectly){
-            message.channel.send(`Added channel <#${channelID}> (${channelID}) as a Homework channel`)
-        }
-    }
-}
+	},
+};

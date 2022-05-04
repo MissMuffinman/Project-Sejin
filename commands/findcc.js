@@ -1,32 +1,22 @@
- const ClassDB = require('../database/class-db')
-
-
+const ClassDB = require('../database/class-db')
+const { SlashCommandBuilder} = require('@discordjs/builders');
 module.exports = {
-    commands: 'findcc',
-    callback:  async (message) => {
+	data: new SlashCommandBuilder()
+		.setName('findcc')
+		.setDescription('Find a classcode using a role')
+        .setDefaultPermission(false)
+        .addRoleOption(option =>
+            option.setName('role')
+                .setDescription('The role of the class')
+                .setRequired(true)),
+	async execute(interaction) {
+        const options = interaction.options
+        const roleId = options.getRole('role').id;
 
-    const ncache = {}
-    
-    if (message.author.bot) return
-
-        const { content } = message
-        let text = content
-        const args = text.split(' ')
-
-        console.log(text)
-
-        if (args.length < 2) {
-            return message.reply("Please input the role id.")
-        }
-
-        args.shift()
-        console.log(args[0])
-        id = args[0]
-        
         console.log('FETCHING FROM DATABASE')
-        ClassDB.getClassCodeByRoleID(id).then((result) => {
-            message.channel.send("The class code is: " + result.classCode.S);
+        ClassDB.getClassCodeByRoleID(roleId).then((result) => {
+            return interaction.reply("The class code is: " + result.classCode.S);
         })
         
-    }   
-} 
+	},
+};
