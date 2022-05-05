@@ -13,6 +13,7 @@ Commands all start with `/` and will give you tool-tips if you start typing in D
 
 | Command                                                                                                                    |                             Description                             |
 |----------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|
+| [`/addalumniroles <class code> <alumni_role>`](#-addalumniroles)                                                           | Adds an alumni role to a class in the voice channel.             |
 | [`/addcc <class code> <channel> <role> <title> <image url> <type> [number of assignments]`](#-addcc)                       | Add a class to the database.                                        |
 | [`/addhwchannel <class code> <channel>`](#-addhwchannel)                                                                   | Add a homework channel to a class.                                  |
 | [`/addhwcheckerrole <role>`](#-addhwcheckerrole)                                                                           | Add a role as a homework checker                                    |
@@ -25,6 +26,16 @@ Commands all start with `/` and will give you tool-tips if you start typing in D
 | [`/setmessagechannel regular <channel>`](#-setmessagechannel-regular)                                                      | Set a message channel in the current server for logbook.            |
 | [`/setmessagechannel cross_server <channel id> <server id>`](#-setmessagechannel-crossserver)                              | Set a message channel in another server for logbook.                |
 
+
+#### <font size=3>⚡ /addalumniroles</font>
+
+**Example:** `/addalumniroles 123456 @TTMIK L1 Alumni`
+
+- **Options:** `<class_code>` _(string)_ Required, `<alumni_role>` *(@role)* Required
+- **Permissions:** MANAGE_CHANNELS
+
+Adds an alumni role to a class currently in the class's voice channel. 
+Returns a response, per message, with a .txt attachment named usersID.txt, which includes a list of the ids of users who had the `<alumni_role>` added.
 
 #### <font size=3>⚡ /addcc</font>
 
