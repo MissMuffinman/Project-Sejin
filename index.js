@@ -1,6 +1,7 @@
 const fs = require('fs');
 const { Client, Collection, Intents } = require('discord.js');
 const { token } = require('./config.json');
+const DiscordUtil = require('./common/discordutil')
 
 const client = new Client({ 
 	partials: ['MESSAGE', 'CHANNEL', 'REACTION'], 
@@ -9,7 +10,8 @@ const client = new Client({
 		Intents.FLAGS.GUILD_PRESENCES, 
 		Intents.FLAGS.GUILD_MEMBERS, 
 		Intents.FLAGS.GUILD_MESSAGE_REACTIONS, 
-		Intents.FLAGS.GUILD_VOICE_STATES 
+		Intents.FLAGS.GUILD_VOICE_STATES, 
+		Intents.FLAGS.GUILD_MESSAGES
 	] 
 });
 
@@ -65,8 +67,9 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		return;
 	}
 	const classCode = hwChannels.ids[reaction.message.channel.id];
-	const validHWChannels = ["GUILD_TEXT", "GUILD_PUBLIC_THREAD", "GUILD_PRIVATE_THREAD"]
-	if (reaction.emoji.name === 'purple_check_mark' && validHWChannels.includes(reaction.message.channel.type)) {
+	const validHWChannels = ["GUILD_TEXT", "GUILD_PUBLIC_THREAD", "GUILD_PRIVATE_THREAD"];
+	const emojiReactionName = reaction.emoji.name.replace(/[0-9]/g, '');
+	if (emojiReactionName === 'purple_check_mark' && validHWChannels.includes(reaction.message.channel.type)) {
 		const firstEmoji = reaction.message.reactions.cache.values().next().value._emoji.name;
 		emojiName = getNameOfEmoji(firstEmoji);
 		if (!emojiName) {
@@ -93,7 +96,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 			reaction.message.react('❌')
 		}
 	}
-	else if (reaction.emoji.name == '❌' && reaction.message.channel.type === 'GUILD_TEXT'){
+	else if (reaction.emoji.name == '❗' && validHWChannels.includes(reaction.message.channel.type)){
 		reaction.message.reactions.removeAll()
 	}
 });
