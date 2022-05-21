@@ -16,7 +16,8 @@ const client = new Client({
 });
 
 const hwChannels = require('./hwchannels.json')
-const HomeworkDB = require('./database/homework-db')
+const HomeworkDB = require('./database/homework-db');
+const numberEmojis = require('./emojis.json');
 
 client.commands = new Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
@@ -31,6 +32,18 @@ client.once('ready', () => {
 });
 
 client.on('interactionCreate', async interaction => {
+	if (interaction.isSelectMenu()){
+		const filter = i => {
+			i.deferUpdate();
+			return i.user.id === interaction.user.id;
+		};
+		
+		interaction.awaitMessageComponent({ filter, componentType: 'SELECT_MENU', time: 60000 })
+			.then(interaction => interaction.editReply(`You selected ${interaction.values.join(', ')}!`))
+			.catch(err => console.log(`No interactions were collected.`));
+	}
+	
+
 	if (interaction.isContextMenu()) {
         await interaction.deferReply({ ephemeral: true });
         const command = client.commands.get(interaction.commandName);
@@ -60,14 +73,35 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		}
 	}
 
+	const emojis = reaction.message.guild.emojis.cache;
+
+	emojis.forEach(emoji => {
+		//console.log(`<:${emoji.name}:${emoji.id}>`);
+	})
+	const validHWChannels = ["GUILD_TEXT", "GUILD_PUBLIC_THREAD", "GUILD_PRIVATE_THREAD"];
+	console.log(reaction.emoji.name);
+	console.log(reaction.emoji.name == '⏭️');
+	if (reaction.emoji.name == '⏭️' && validHWChannels.includes(reaction.message.channel.type)){
+		for (var i = 0; i < 5; i++){
+			console.log(numberEmojis.emojis);
+			reaction.message.react(numberEmojis.emojis[i])
+		}
+	}
+
+	console.log(reaction.emoji.name == numberEmojis.emojis[reaction.emoji.name - 1]);
+	console.log(numberEmojis.emojis[reaction.emoji.name - 11]);
 	if (user.id === client.user.id){
 		return;
 	}
+
+	if (reaction.emoji.name < 20 ){
+		reaction.message.react('👍')
+	}
+
 	if (!Object.keys(hwChannels.ids).includes(reaction.message.channel.id)){
 		return;
 	}
 	const classCode = hwChannels.ids[reaction.message.channel.id];
-	const validHWChannels = ["GUILD_TEXT", "GUILD_PUBLIC_THREAD", "GUILD_PRIVATE_THREAD"];
 	const emojiReactionName = reaction.emoji.name.replace(/[0-9]/g, '');
 	if (emojiReactionName === 'purple_check_mark' && validHWChannels.includes(reaction.message.channel.type)) {
 		const firstEmoji = reaction.message.reactions.cache.values().next().value._emoji.name;
@@ -98,6 +132,9 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	}
 	else if (reaction.emoji.name == '❗' && validHWChannels.includes(reaction.message.channel.type)){
 		reaction.message.reactions.removeAll()
+	}
+	else if (emojiReactionName === '⏭' && validHWChannels.includes(reaction.message.channel.type)){
+		console.log(message.guild.emojis);
 	}
 });
 
