@@ -75,34 +75,24 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
 	const emojis = reaction.message.guild.emojis.cache;
 
-	emojis.forEach(emoji => {
-		//console.log(`<:${emoji.name}:${emoji.id}>`);
-	})
 	const validHWChannels = ["GUILD_TEXT", "GUILD_PUBLIC_THREAD", "GUILD_PRIVATE_THREAD"];
-	console.log(reaction.emoji.name);
-	console.log(reaction.emoji.name == '⏭️');
+
 	if (reaction.emoji.name == '⏭️' && validHWChannels.includes(reaction.message.channel.type)){
 		for (var i = 0; i < 5; i++){
-			console.log(numberEmojis.emojis);
 			reaction.message.react(numberEmojis.emojis[i])
 		}
 	}
 
-	console.log(reaction.emoji.name == numberEmojis.emojis[reaction.emoji.name - 1]);
-	console.log(numberEmojis.emojis[reaction.emoji.name - 11]);
 	if (user.id === client.user.id){
 		return;
-	}
-
-	if (reaction.emoji.name < 20 ){
-		reaction.message.react('👍')
 	}
 
 	if (!Object.keys(hwChannels.ids).includes(reaction.message.channel.id)){
 		return;
 	}
 	const classCode = hwChannels.ids[reaction.message.channel.id];
-	const emojiReactionName = reaction.emoji.name.replace(/[0-9]/g, '');
+	const emojiReactionName = reaction.emoji.name;
+	const emojiId = `<:${reaction.emoji.name}:${reaction.emoji.id}>`
 	if (emojiReactionName === 'purple_check_mark' && validHWChannels.includes(reaction.message.channel.type)) {
 		const firstEmoji = reaction.message.reactions.cache.values().next().value._emoji.name;
 		emojiName = getNameOfEmoji(firstEmoji);
@@ -110,31 +100,17 @@ client.on('messageReactionAdd', async (reaction, user) => {
 			reaction.message.react('❌')
 			return;
 			}
-		var timestamp = reaction.message.createdTimestamp;
-		var date = new Date(timestamp);
-		var CSTDay = new Date(
-		date.getUTCFullYear(),
-		date.getUTCMonth(),
-		date.getUTCDate(),
-		date.getUTCHours() - 5,
-		date.getUTCMinutes())
-		var CSTTimestamp = Date.parse(CSTDay);
+		var CSTTimestamp = DiscordUtil.getTimeForSavingHomework(reaction)
 	
 		console.log('INSERTING DATA INTO DATABASE')
-		
-		const result = await HomeworkDB.write(reaction.message.id, reaction.message.author.id, reaction.message.channel.id, CSTTimestamp.toString(), emojiName, classCode);
-		if (result == true){
-			reaction.message.react('👍')
-		}
-		else {
-			reaction.message.react('❌')
-		}
+		saveHomeworkToDB(reaction, CSTTimestamp, emojiName, classCode)
 	}
 	else if (reaction.emoji.name == '❗' && validHWChannels.includes(reaction.message.channel.type)){
 		reaction.message.reactions.removeAll()
 	}
-	else if (emojiReactionName === '⏭' && validHWChannels.includes(reaction.message.channel.type)){
-		console.log(message.guild.emojis);
+	else if (numberEmojis.emojis.includes(emojiId) && validHWChannels.includes(reaction.message.channel.type)){
+		var CSTTimestamp = DiscordUtil.getTimeForSavingHomework(reaction);
+		saveHomeworkToDB(reaction, CSTTimestamp, emojiReactionName, classCode)
 	}
 });
 
@@ -163,6 +139,16 @@ function getNameOfEmoji(emoji) {
 	default:
 		return null;
 	}      
+}
+
+async function saveHomeworkToDB(reaction, CSTTimestamp, emojiName, classCode) {
+	const result = await HomeworkDB.write(reaction.message.id, reaction.message.author.id, reaction.message.channel.id, CSTTimestamp.toString(), emojiName, classCode);
+	if (result == true){
+		reaction.message.react('👍')
+	}
+	else {
+		reaction.message.react('❌')
+	}
 }
 
 client.login(token);
