@@ -1,131 +1,134 @@
-const fs = require('fs');
-const { Client, Collection, Intents } = require('discord.js');
-const { token } = require('./config.json');
-const DiscordUtil = require('./common/discordutil')
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const HomeworkDB = require('../database/homework-db');
+const ClassDB = require('../database/class-db');
+const messageChannelDB = require('../database/messageChannel-db');
+const HomeworkLogBook = require('../common/logbook-homework');
+const DateValidator = require('../common/logbook-date');
 
-const client = new Client({ 
-	partials: ['MESSAGE', 'CHANNEL', 'REACTION'], 
-	intents: [
-		Intents.FLAGS.GUILDS, 
-		Intents.FLAGS.GUILD_PRESENCES, 
-		Intents.FLAGS.GUILD_MEMBERS, 
-		Intents.FLAGS.GUILD_MESSAGE_REACTIONS, 
-		Intents.FLAGS.GUILD_VOICE_STATES, 
-		Intents.FLAGS.GUILD_MESSAGES
-	] 
-});
+module.exports = {
+	data: new SlashCommandBuilder()
+		.setName('loghw')
+		.setDescription('Log a club in the message channel.')
+		.setDefaultPermission(false)
+		.addStringOption(option =>
+			option.setName('class_code')
+				.setDescription('The class code for the class')
+				.setRequired(true))
+		.addStringOption(option =>
+			option.setName('start_date')
+				.setDescription('The first day to log in the logbook (Format YYYY/MM/DD)')
+				.setRequired(true))
+		.addStringOption(option =>
+			option.setName('start_time')
+				.setDescription('Add the time for when to start looking homework (Format HH:MM)')
+				.setRequired(true))
+		.addStringOption(option =>
+			option.setName('end_date')
+				.setDescription('The last day to log in the logbook (Format YYYY/MM/DD)')
+				.setRequired(true))
+		.addStringOption(option =>
+			option.setName('end_time')
+				.setDescription('Add the time for when to stop looking homework (Format HH:MM)')
+				.setRequired(true))
+		.addStringOption(option =>
+			option.setName('description')
+				.setDescription('The description on the top of message')
+				.setRequired(false))
+		.addStringOption(option =>
+			option.setName('hw_description')
+				.setDescription('Description for each homework. Add "number" to include the number. Eg: Assigment #"number"')
+				.setRequired(false))
+		.addBooleanOption(option =>
+			option.setName('no_multiples')
+				.setDescription('Should not allow multiple entries from same student. Defaults to allow multiple entries.')
+				.setRequired(false)),
+	async execute(interaction) {
+		const options = interaction.options;
+		let startDay = options.getString('start_date');
+		const startTime = options.getString('start_time');
+		let endDay = options.getString('end_date');
+		const endTime = options.getString('end_time');
+		const classCode = options.getString('class_code');
+		const desc = options.getString('description') || '';
+		const hwDesc = options.getString('hw_description') || 'Assignment "number"';
+		const shouldNotAllowMultipleEntries = options.getBoolean('no_multiples');
 
-const hwChannels = require('./hwchannels.json')
-const HomeworkDB = require('./database/homework-db')
+		await interaction.deferReply();
 
-client.commands = new Collection();
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-
-for (const file of commandFiles) {
-	const command = require(`./commands/${file}`);
-	client.commands.set(command.data.name, command);
-}
-
-client.once('ready', () => {
-	console.log('Ready!');
-});
-
-client.on('interactionCreate', async interaction => {
-	if (interaction.isContextMenu()) {
-        await interaction.deferReply({ ephemeral: true });
-        const command = client.commands.get(interaction.commandName);
-        if (command) command.execute(interaction);
-    }
-	if (!interaction.isCommand()) return;
-	const command = client.commands.get(interaction.commandName);
-
-	if (!command) return;
-
-	try {
-		await command.execute(interaction);
-	} catch (error) {
-		console.error(error);
-		return interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-	}
-});
-
-client.on('messageReactionAdd', async (reaction, user) => {
-	if (reaction.partial) {
-		try {
-			await reaction.fetch();
-		} catch (error) {
-			console.error('Something went wrong when fetching the message: ', error);
-			// Return as `reaction.message.author` may be undefined/null
-			return;
+		if (classCode.length >= 7) {
+			return interaction.followUp('Class Code should have 6 characters.');
 		}
-	}
 
-	if (user.id === client.user.id){
-		return;
-	}
-	if (!Object.keys(hwChannels.ids).includes(reaction.message.channel.id)){
-		return;
-	}
-	const classCode = hwChannels.ids[reaction.message.channel.id];
-	const validHWChannels = ["GUILD_TEXT", "GUILD_PUBLIC_THREAD", "GUILD_PRIVATE_THREAD"];
-	const emojiReactionName = reaction.emoji.name.replace(/[0-9]/g, '');
-	if (emojiReactionName === 'purple_check_mark' && validHWChannels.includes(reaction.message.channel.type)) {
-		const firstEmoji = reaction.message.reactions.cache.values().next().value._emoji.name;
-		emojiName = getNameOfEmoji(firstEmoji);
-		if (!emojiName) {
-			reaction.message.react('❌')
-			return;
-			}
-		var timestamp = reaction.message.createdTimestamp;
-		var date = new Date(timestamp);
-		var CSTDay = new Date(
-		date.getUTCFullYear(),
-		date.getUTCMonth(),
-		date.getUTCDate(),
-		date.getUTCHours() - 5,
-		date.getUTCMinutes())
-		var CSTTimestamp = Date.parse(CSTDay);
-	
-		console.log('INSERTING DATA INTO DATABASE')
-		
-		const result = await HomeworkDB.write(reaction.message.id, reaction.message.author.id, reaction.message.channel.id, CSTTimestamp.toString(), emojiName, classCode);
-		if (result == true){
-			reaction.message.react('👍')
+		const dateValid = new DateValidator();
+		if (!dateValid.isValidDate(endDay) || !dateValid.isValidDate(startDay) || !dateValid.isValidTime(startTime) || !dateValid.isValidTime(endTime)) {
+			return interaction.followUp('Please insert the correct format for dates and time (YYYY/MM/DD HH:MM)');
 		}
-		else {
-			reaction.message.react('❌')
-		}
-	}
-	else if (reaction.emoji.name == '❗' && validHWChannels.includes(reaction.message.channel.type)){
-		reaction.message.reactions.removeAll()
-	}
-});
+		dateValid.adaptFormatOfDays(startTime, startDay, endTime, endDay);
+		const periodDayTimes = dateValid.adaptFormatOfDays(startTime, startDay, endTime, endDay);
+		startDay = periodDayTimes[0];
+		endDay = periodDayTimes[1];
 
-function getNameOfEmoji(emoji) {
-  switch (emoji) {
-    case '1️⃣':
-		return '1'
-    case '2️⃣':
-		return '2'
-    case '3️⃣':
-		return '3'
-    case '4️⃣':
-		return '4'
-    case '5️⃣':
-		return '5'
-    case '6️⃣':
-		return '6'
-    case '7️⃣':
-		return '7'
-    case '8️⃣':
-		return '8'
-    case '9️⃣':
-		return '9'
-    case '🔟':
-		return '10'
-	default:
-		return null;
-	}      
-}
+		console.log('FETCHING FROM DATABASE');
 
-client.login(token);
+		const studentsIdsByHomeworkNumber = new Map();
+
+		// Get information from the class using ClassCodeID
+		ClassDB.read(classCode)
+			.then((foundClass) => {
+				if (!foundClass) {
+					return interaction.followUp(`Class code ${classCode} not found. <a:shookysad:949689086665437184>`);
+				}
+				const classInfo = {
+					assignedRole: foundClass.roleID.S,
+					channelID: foundClass.channelID.S,
+					title: foundClass.title.S,
+					img: foundClass.image_url.S,
+					serverID: foundClass.serverID.S
+				};
+
+				console.log('DATA FETCHED');
+
+				// get LogBookChannelID and GuildID of main server
+				messageChannelDB.read(interaction.channel.id)
+					.then((channel) => {
+						const messageChannelID = channel.channelID.S;
+						const messageChannelGuildID = channel.guildID.S;
+						const guild = interaction.client.guilds.cache.get(messageChannelGuildID);
+						const messageChannel = guild.channels.cache.get(messageChannelID);
+
+						// Search in the db for all the homework submitted and checked during a period of time
+						HomeworkDB.read(classInfo.channelID, startDay, endDay, classCode)
+							.then((homework) => {
+								console.log(homework);
+
+								const alreadyLoggedStudentIds = [];
+								homework.sort().map((hw) => {
+									const hwNumber = hw.type.S;
+									const studentId = hw.studentID.S;
+									const hasStudentAlreadyBeenLogged = alreadyLoggedStudentIds.includes(studentId);
+									if (shouldNotAllowMultipleEntries && hasStudentAlreadyBeenLogged) {
+										return;
+									}
+
+									if (!(hwNumber in studentsIdsByHomeworkNumber)) {
+										studentsIdsByHomeworkNumber[hwNumber] = [];
+									}
+
+									studentsIdsByHomeworkNumber[hwNumber].push(studentId);
+									alreadyLoggedStudentIds.push(studentId);
+								});
+
+								const totalHomeworks = Object.keys(studentsIdsByHomeworkNumber).length;
+								console.log('DATA FETCHED', totalHomeworks);
+								if (totalHomeworks === 0) {
+									return interaction.followUp('There was no homework submitted during this time period.');
+								}
+
+								const logMessage = new HomeworkLogBook(messageChannel, classInfo, desc, totalHomeworks, hwDesc);
+								logMessage.sendLogBookMessage(studentsIdsByHomeworkNumber);
+								interaction.followUp('Logbook posted!');
+							});
+					});
+			});
+	}
+};
