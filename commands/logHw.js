@@ -102,7 +102,7 @@ module.exports = {
                                 console.log(homework);
 
                                 const alreadyLoggedStudentIds = [];
-                                homework.sort().map((hw) => {
+                                homework.sort().reverse().map((hw) => {
                                     const hwNumber = hw.type.S;
                                     const studentId = hw.studentID.S;
                                     const hasStudentAlreadyBeenLogged = alreadyLoggedStudentIds.includes(studentId);
