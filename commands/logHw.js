@@ -1,14 +1,14 @@
-const { SlashCommandBuilder, roleMention, channelMention } = require('@discordjs/builders');
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const HomeworkDB = require('../database/homework-db');
 const ClassDB = require('../database/class-db');
 const messageChannelDB = require('../database/messageChannel-db');
-const VCLogBook = require('../common/logbook-vc');
+const HomeworkLogBook = require('../common/logbook-homework');
 const DateValidator = require('../common/logbook-date');
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('loghwclass')
-        .setDescription('Log a class in the message channel.')
+        .setName('loghw')
+        .setDescription('Log a club in the message channel.')
         .setDefaultPermission(false)
         .addStringOption(option =>
             option.setName('class_code')
@@ -33,6 +33,14 @@ module.exports = {
         .addStringOption(option =>
             option.setName('description')
                 .setDescription('The description on the top of message')
+                .setRequired(false))
+        .addStringOption(option =>
+            option.setName('hw_description')
+                .setDescription('Description for each homework. Add "number" to include the number. Eg: Assigment #"number"')
+                .setRequired(false))
+        .addBooleanOption(option =>
+            option.setName('no_multiples')
+                .setDescription('Should not allow multiple entries from same student. Defaults to allow multiple entries.')
                 .setRequired(false)),
     async execute(interaction) {
         const options = interaction.options;
@@ -42,6 +50,8 @@ module.exports = {
         const endTime = options.getString('end_time');
         const classCode = options.getString('class_code');
         const desc = options.getString('description') || '';
+        const hwDesc = options.getString('hw_description') || 'Assignment "number"';
+        const shouldNotAllowMultipleEntries = options.getBoolean('no_multiples');
 
         await interaction.deferReply();
 
@@ -60,6 +70,8 @@ module.exports = {
 
         console.log('FETCHING FROM DATABASE');
 
+        const studentsIdsByHomeworkNumber = new Map();
+
         // Get information from the class using ClassCodeID
         ClassDB.read(classCode)
             .then((foundClass) => {
@@ -75,20 +87,8 @@ module.exports = {
                 };
 
                 console.log('DATA FETCHED');
-                const assignedRole = classInfo.assignedRole;
-                const room = classInfo.channelID;
-                const vcServerID = classInfo.serverID;
-                const vcServer = interaction.client.guilds.cache.get(vcServerID);
-                console.log(assignedRole);
-                console.log(room);
 
-                const names = vcServer.channels.cache.get(room).members.filter(m => m.roles.cache.get(assignedRole)).map(m => m.user.id);
-                console.log(names);
-                if (names.length === 0) {
-                    return interaction.followUp(`There is no one on vc ${channelMention(room)} with role ${roleMention(assignedRole)}> <a:shookysad:949689086665437184>`);
-                }
-
-                // get LogBookChannel ID and GuildID of main server
+                // get LogBookChannelID and GuildID of main server
                 messageChannelDB.read(interaction.channel.id)
                     .then((channel) => {
                         const messageChannelID = channel.channelID.S;
@@ -101,20 +101,31 @@ module.exports = {
                             .then((homework) => {
                                 console.log(homework);
 
-                                const studentsSubmittedHw = homework.map((hw) => {
-                                    return hw.studentID.S;
+                                const alreadyLoggedStudentIds = [];
+                                homework.sort().map((hw) => {
+                                    const hwNumber = hw.type.S;
+                                    const studentId = hw.studentID.S;
+                                    const hasStudentAlreadyBeenLogged = alreadyLoggedStudentIds.includes(studentId);
+                                    if (shouldNotAllowMultipleEntries && hasStudentAlreadyBeenLogged) {
+                                        return;
+                                    }
+
+                                    if (!(hwNumber in studentsIdsByHomeworkNumber)) {
+                                        studentsIdsByHomeworkNumber[hwNumber] = [];
+                                    }
+
+                                    studentsIdsByHomeworkNumber[hwNumber].push(studentId);
+                                    alreadyLoggedStudentIds.push(studentId);
                                 });
 
-                                const totalHomeworks = Object.keys(studentsSubmittedHw).length;
-                                console.log('DATA FETCHED ', totalHomeworks);
+                                const totalHomeworks = Object.keys(studentsIdsByHomeworkNumber).length;
+                                console.log('DATA FETCHED', totalHomeworks);
                                 if (totalHomeworks === 0) {
                                     return interaction.followUp('There was no homework submitted during this time period.');
                                 }
-                                const finalNames = names.filter(name => studentsSubmittedHw.includes(name));
-                                const logMessage = new VCLogBook(messageChannel, classInfo, desc);
-                                const classSize = logMessage.getMapSize(finalNames);
 
-                                logMessage.sendLogBookMessage(finalNames, classSize);
+                                const logMessage = new HomeworkLogBook(messageChannel, classInfo, desc, totalHomeworks, hwDesc);
+                                logMessage.sendLogBookMessage(studentsIdsByHomeworkNumber);
                                 interaction.followUp('Logbook posted!');
                             });
                     });
