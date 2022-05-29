@@ -65,44 +65,55 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	if (user.id === client.user.id) {
 		return;
 	}
-	if (!Object.keys(hwChannels.ids).includes(reaction.message.channel.id)) {
+
+	const message = reaction.message;
+	const channelId = message.channel.id;
+	const channelType = message.channel.type;
+	const messageId = message.id;
+	const authorId = message.author.id;
+
+	const isAValidHwChannel = Object.keys(hwChannels.ids).includes(channelId);
+	if (!isAValidHwChannel) {
 		return;
 	}
 
-	const classCode = hwChannels.ids[reaction.message.channel.id];
-	const validHWChannels = ['GUILD_TEXT', 'GUILD_PUBLIC_THREAD', 'GUILD_PRIVATE_THREAD'];
+	const validHWChannelTypes = ['GUILD_TEXT', 'GUILD_PUBLIC_THREAD', 'GUILD_PRIVATE_THREAD'];
+	const isAValidHwChannelType = validHWChannelTypes.includes(channelType);
+
+	if (!isAValidHwChannelType) {
+		return;
+	}
+
+	const classCode = hwChannels.ids[channelId];
 	const emojiReactionName = reaction.emoji.name.replace(/\d/g, '');
-	if (emojiReactionName === 'purple_check_mark' && validHWChannels.includes(reaction.message.channel.type)) {
-		const firstEmoji = reaction.message.reactions.cache.values().next().value._emoji.name;
+	if (emojiReactionName === 'purple_check_mark') {
+		const firstEmoji = message.reactions.cache.values().next().value._emoji.name;
 		const emojiName = getNameOfEmoji(firstEmoji);
 		if (!emojiName) {
-			reaction.message.react('❌');
+			message.react('❌');
 			return;
 		}
-		const timestamp = reaction.message.createdTimestamp;
-		const date = new Date(timestamp);
-		const CSTDay = new Date(
-			date.getUTCFullYear(),
-			date.getUTCMonth(),
-			date.getUTCDate(),
-			date.getUTCHours() - 5,
-			date.getUTCMinutes());
-		const CSTTimestamp = Date.parse(CSTDay.toString());
+		const timestamp = getCTTimestamp(message.createdTimestamp);
 
 		console.log('INSERTING DATA INTO DATABASE');
 
-		const result = await HomeworkDB.write(reaction.message.id, reaction.message.author.id, reaction.message.channel.id, CSTTimestamp.toString(), emojiName, classCode);
+		const result = await HomeworkDB.write(messageId, authorId, channelId, timestamp, emojiName, classCode);
 		if (result === true) {
-			reaction.message.react('👍');
+			message.react('👍');
 		} else {
-			reaction.message.react('❌');
+			message.react('❌');
 		}
-	} else if (reaction.emoji.name === '❗' && validHWChannels.includes(reaction.message.channel.type)) {
-		reaction.message.reactions.removeAll();
+	} else if (reaction.emoji.name === '❗') {
+		message.reactions.removeAll();
+	} else if (reaction.emoji.name === '‼️') {
+		message.reactions.removeAll();
+
+		console.log(`REMOVING DATA FROM DATABASE, messageId ${messageId}, classCode ${classCode}`);
+		await HomeworkDB.remove(messageId, classCode);
 	}
 });
 
-function getNameOfEmoji(emoji) {
+const getNameOfEmoji = (emoji) => {
 	switch (emoji) {
 		case '1️⃣':
 			return '1';
@@ -127,6 +138,18 @@ function getNameOfEmoji(emoji) {
 		default:
 			return null;
 	}
-}
+};
+
+const getCTTimestamp = (timestamp) => {
+	const date = new Date(timestamp);
+	const CSTDay = new Date(
+		date.getUTCFullYear(),
+		date.getUTCMonth(),
+		date.getUTCDate(),
+		date.getUTCHours() - 5,
+		date.getUTCMinutes());
+	const parsedTimestamp = Date.parse(CSTDay.toString());
+	return parsedTimestamp.toString();
+};
 
 client.login(token);
