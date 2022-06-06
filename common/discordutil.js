@@ -73,8 +73,8 @@ module.exports = {
         this.writeToFile();
         return true;
     }, 
-    getTimeForSavingHomework(reaction) {
-        var timestamp = reaction.message.createdTimestamp;
+    getTimeForSavingHomework(message) {
+        var timestamp = message.createdTimestamp;
         var date = new Date(timestamp);
         var CSTDay = new Date(
         date.getUTCFullYear(),
