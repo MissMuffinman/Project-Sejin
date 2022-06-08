@@ -49,9 +49,14 @@ client.on('interactionCreate', async interaction => {
 			interaction.channel.messages.fetch(messageId).then(async (msg) => {
 				const classCode = hwChannels.ids[interaction.channelId];
 				const CSTTimestamp = DiscordUtil.getTimeForSavingHomework(msg);
-				saveHomeworkToDB(msg, CSTTimestamp, interaction.values[0], classCode);
-				await interaction.editReply({ content: `The homework has been registered as assignment number ${interaction.values.join(', ')}! <a:btshooky_thumbsup:854135650294169610> `, components: [] });
-				console.log(interaction);
+				const result = await saveHomeworkToDB(msg, CSTTimestamp, interaction.values[0], classCode)
+
+				if (result) {
+					await interaction.editReply({ content: `The homework has been registered as assignment number ${interaction.values.join(', ')}! <a:btshooky_thumbsup:854135650294169610> `, components: [] });
+				}
+				else {
+					await interaction.editReply({ content: 'Oops! There was a problem registering this assignment. <a:btshooksad:802306534721191956>', components: []});
+				}
 			});
 		}
 	}
