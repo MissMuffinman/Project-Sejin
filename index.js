@@ -105,11 +105,6 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		}
 	} else if (reaction.emoji.name === '❗') {
 		message.reactions.removeAll();
-	} else if (reaction.emoji.name === '‼️') {
-		message.reactions.removeAll();
-
-		console.log(`REMOVING DATA FROM DATABASE, messageId ${messageId}, classCode ${classCode}`);
-		await HomeworkDB.remove(messageId, classCode);
 	}
 });
 
