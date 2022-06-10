@@ -71,5 +71,17 @@ module.exports = {
         delete file.ids[channelID];
         this.writeToFile();
         return true;
-    }
+    }, 
+    getTimeForSavingHomework(message) {
+        var timestamp = message.createdTimestamp;
+        var date = new Date(timestamp);
+        var CSTDay = new Date(
+        date.getUTCFullYear(),
+        date.getUTCMonth(),
+        date.getUTCDate(),
+        date.getUTCHours() - 5,
+        date.getUTCMinutes())
+        return Date.parse(CSTDay);
+    },
+
 };
