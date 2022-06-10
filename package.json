@@ -11,12 +11,24 @@
   "author": "MissMuffinman",
   "license": "ISC",
   "dependencies": {
+    "@discordjs/builders": "^0.13.0",
     "@discordjs/rest": "^0.1.0-canary.0",
     "aws-sdk": "^2.918.0",
-    "discord-api-types": "^0.24.0",
-    "discord-backup": "^2.5.0",
-    "discord.js": "^13.3.1",
+    "discord-api-types": "^0.31.0",
+    "discord-backup": "^3.2.1",
+    "discord.js": "^13.6.0",
     "endb": "^0.23.0",
-    "got": "^11.8.2"
+    "got": "^11.8.2",
+    "nodemon": "^2.0.14"
+  },
+  "devDependencies": {
+    "@discordjs/rest": "0.1.0-canary.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.11.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-react": "^7.19.0"
   }
 }

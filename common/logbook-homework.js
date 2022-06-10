@@ -1,33 +1,32 @@
-const LogMessage = require('./logbook-message')
+const LogMessage = require('./logbook-message');
 
 module.exports = class HomeworkLogBook extends LogMessage {
-
-    constructor(messageChannel, classInfo, description, hwNumbers, hwDesc){
-        super(messageChannel, classInfo, description)
+    constructor(messageChannel, classInfo, description, hwNumbers, hwDesc) {
+        super(messageChannel, classInfo, description);
         this.hwNumbers = hwNumbers;
         console.log(hwDesc);
         this.hwDesc = hwDesc;
         console.log(this.hwDesc);
     }
 
-    sendLogBookMessage(names){
-
-        this.sendFirstPartOfLogbookMessage()
-        var fullMessage = "\n"
+    sendLogBookMessage(names) {
+        this.sendFirstPartOfLogbookMessage();
+        let fullMessage = '\n';
 
         for (let i = 0; i < Object.keys(names).length; i++) {
-            var key = Object.keys(names)[i]
-            var hwDesc = this.hwDesc.replace('"number"', key) + " ";
-            var list = this.mentionList(names[key]);
-            fullMessage += hwDesc + list.join(" ") + " \n\n";
+            const key = Object.keys(names)[i];
+            const hwDesc = this.hwDesc.replace('"number"', key) + ' ';
+            const list = this.mentionList(names[key]);
+            fullMessage += hwDesc + list.join(' ') + ' \n\n';
         }
+
         if (fullMessage.length > 2000) {
-            var messages = this.splitMessage(fullMessage, 2000);
+            const messages = this.splitMessage(fullMessage, 2000);
             messages.forEach(message => this.messageChannel.send(message));
-        }
-        else {
+        } else {
             this.messageChannel.send(fullMessage);
         }
-        messageChannel.send({ files: [this.classInfo.img] })
+
+        this.messageChannel.send({ files: [this.classInfo.img] });
     }
-}
+};
