@@ -63,11 +63,7 @@ client.on('interactionCreate', async interaction => {
 			});
 		}
 	}
-
-		await interaction.deferReply({ ephemeral: true });
-		const command = client.commands.get(interaction.commandName);
-		if (command) command.execute(interaction);
-	}
+	
 	if (!interaction.isCommand()) return;
 	const command = client.commands.get(interaction.commandName);
 
@@ -105,17 +101,15 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	if (user.id === client.user.id) {
 		return;
 	}
-  
+
 	if (!Object.keys(hwChannels.ids).includes(reaction.message.channel.id)) {
 		return;
 	}
 
 	const classCode = hwChannels.ids[reaction.message.channel.id];
 
-	const emojiReactionName = reaction.emoji.name;
 	const emojiId = `<:${reaction.emoji.name}:${reaction.emoji.id}>`;
 	let CSTTimestamp;
-	const validHWChannels = ['GUILD_TEXT', 'GUILD_PUBLIC_THREAD', 'GUILD_PRIVATE_THREAD'];
 	const emojiReactionName = reaction.emoji.name.replace(/\d/g, '');
   
 	if (emojiReactionName === 'purple_check_mark' && validHWChannels.includes(reaction.message.channel.type)) {
@@ -172,6 +166,7 @@ async function saveHomeworkToDB(message, CSTTimestamp, emojiName, classCode) {
 	} else {
 		message.react('❌');
 	}
+	return result;
 }
 
 client.login(token);
