@@ -47,7 +47,7 @@ async function write(messageID, studentID, channelID, timestamp, type, classCode
                 type: { S: type }
             }
         };
-
+        console.log(`Adding Homework: messageID ${messageID}, studentID ${studentID}, channelID ${channelID}, timestamp${timestamp}, type${type}, classCode ${classCode}`);
         return new Promise(resolve => {
             ddb.putItem(params, (err, data) => {
                 if (err) {
@@ -80,6 +80,7 @@ async function remove(messageID, classCode) {
                 messageID: { S: messageID }
             }
         };
+        console.log(`Removing Homework: messageID ${messageID}, classCode ${classCode}`);
         return new Promise(resolve => {
             ddb.deleteItem(params, (err, data) => {
                 if (err) {

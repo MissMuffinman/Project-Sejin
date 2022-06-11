@@ -75,7 +75,7 @@ module.exports = {
             return true;
         };
 
-        if(type === 'hw' && numberOfAssignments === 0) {
+        if (type === 'hw' && numberOfAssignments === 0) {
             interaction.followUp('For a club, the number of assignments should be greater than 0. <a:shookysad:949689086665437184>');
             return;
         }
@@ -98,7 +98,7 @@ module.exports = {
 
         ClassDB.getClassCodeByRoleID(roleID)
             .then((result) => {
-                if (result) {
+                if (result && result.classCode.S !== classCode) {
                     return interaction.followUp(`There's already class code ${result.classCode.S} with this role assigned!`);
                 } else {
                     console.log('INSERTING DATA INTO DATABASE');

@@ -11,18 +11,16 @@ module.exports = {
         const messageId = interaction.targetId;
         const channelId = interaction.channelId;
         const guildId = interaction.guildId;
-
         const guild = interaction.client.guilds.cache.get(guildId);
         const channel = guild.channels.cache.get(channelId);
-        channel.messages.fetch(messageId).then((msg) => {
-            msg.reactions.removeAll();
+        const classCode = hwChannels.ids[channelId];
+
+        channel.messages.fetch(messageId).then((message) => {
+            message.reactions.removeAll();
         }).catch((error) => {
             console.log(error);
         });
 
-        const classCode = hwChannels.ids[channelId];
-
-        console.log(`REMOVING DATA FROM DATABASE, messageId ${messageId}, classCode ${classCode}`);
         await HomeworkDB.remove(messageId, classCode);
 
         return interaction.followUp({ content: `The homework with messageId ${messageId} has been removed 👍`, ephemeral: true });
