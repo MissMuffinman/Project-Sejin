@@ -108,7 +108,6 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	const classCode = hwChannels.ids[channelId];
 	const emojiName = reaction.emoji.name;
 	const cleanEmojiName = emojiName.replace(/\d/g, '');
-	console.log('Debug -- emojiName', emojiName);
 
 	if (cleanEmojiName === 'purple_check_mark') {
 		const firstEmoji = message.reactions.cache.values().next().value._emoji.name;
@@ -121,7 +120,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		return;
 	}
 
-	if (cleanEmojiName === '⏭️') {
+	if (emojiName === '⏭️') {
 		const nextEmojis = numberEmojis.emojis.slice(0, 4);
 		nextEmojis.forEach((emoji) => {
 			message.react(emoji);
