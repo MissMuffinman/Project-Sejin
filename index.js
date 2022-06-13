@@ -51,7 +51,9 @@ client.on('interactionCreate', async interaction => {
 		if (selectMenuName === 'addhw') {
 			interaction.channel.messages.fetch(messageId).then(async (msg) => {
 				const classCode = hwChannels.ids[interaction.channelId];
-				const result = await saveHomeworkToDB(msg, interaction.values[0], classCode);
+				const hwNumber = interaction.values[0];
+				msg.react(numberEmojis.emojis[hwNumber - 1]);
+				const result = await saveHomeworkToDB(msg, hwNumber, classCode);
 
 				if (result) {
 					await interaction.editReply({ content: `The homework has been registered as assignment number ${interaction.values.join(', ')}! <a:btshooky_thumbsup:854135650294169610> `, components: [] });
@@ -121,7 +123,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	}
 
 	if (emojiName === '⏭️') {
-		const nextEmojis = numberEmojis.emojis.slice(0, 4);
+		const nextEmojis = numberEmojis.emojis.slice(10, 15);
 		nextEmojis.forEach((emoji) => {
 			message.react(emoji);
 		});
@@ -131,6 +133,8 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	const fullEmojiId = `<:${emojiName}:${reaction.emoji.id}>`;
 	const isStoredNumberEmoji = numberEmojis.emojis.includes(fullEmojiId);
 	if (isStoredNumberEmoji) {
+		message.reactions.removeAll();
+		message.react(fullEmojiId);
 		await saveHomeworkToDB(message, cleanEmojiName, classCode);
 		return;
 	}
