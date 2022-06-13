@@ -1,5 +1,4 @@
 const { ContextMenuCommandBuilder } = require('@discordjs/builders');
-const hwChannels = require('../hwchannels.json');
 const { MessageActionRow, MessageSelectMenu } = require('discord.js');
 
 module.exports = {

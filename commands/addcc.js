@@ -98,7 +98,7 @@ module.exports = {
 
         ClassDB.getClassCodeByRoleID(roleID)
             .then((result) => {
-                if (result && result.classCode.S != classCode) {
+                if (result && result.classCode.S !== classCode) {
                     return interaction.followUp(`There's already class code ${result.classCode.S} with this role assigned!`);
                 } else {
                     console.log('INSERTING DATA INTO DATABASE');
