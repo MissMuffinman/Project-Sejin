@@ -15,7 +15,7 @@ module.exports = class HomeworkLogBook extends LogMessage {
 
         for (let i = 0; i < Object.keys(names).length; i++) {
             const key = Object.keys(names)[i];
-            const hwDesc = this.hwDesc.replace('"number"', key) + ' ';
+            const hwDesc = this.hwDesc.replace("'number'", key) + ' ';
             const list = this.mentionList(names[key]);
             fullMessage += hwDesc + list.join(' ') + ' \n\n';
         }
