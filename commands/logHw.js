@@ -36,7 +36,7 @@ module.exports = {
                 .setRequired(false))
         .addStringOption(option =>
             option.setName('hw_description')
-                .setDescription('Description for each homework. Add "number" to include the number. Eg: Assigment #"number"')
+                .setDescription("Description for each homework. Add 'number' to include the number. Eg: Assigment #'number'")
                 .setRequired(false))
         .addBooleanOption(option =>
             option.setName('no_multiples')

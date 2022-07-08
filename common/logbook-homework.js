@@ -4,9 +4,7 @@ module.exports = class HomeworkLogBook extends LogMessage {
     constructor(messageChannel, classInfo, description, hwNumbers, hwDesc) {
         super(messageChannel, classInfo, description);
         this.hwNumbers = hwNumbers;
-        console.log(hwDesc);
         this.hwDesc = hwDesc;
-        console.log(this.hwDesc);
     }
 
     sendLogBookMessage(names) {
