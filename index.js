@@ -110,9 +110,9 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
 	const classCode = hwChannels.ids[channelId];
 	const emojiName = reaction.emoji.name;
-	const cleanEmojiName = emojiName.replace(/\d/g, '');
+	const cleanEmojiName = emojiName.replace(/\d/g, '').replace(/_/g, '').toLowerCase();
 
-	if (cleanEmojiName === 'purple_check_mark') {
+	if (cleanEmojiName === 'purplecheckmark') {
 		const firstEmoji = message.reactions.cache.values().next().value._emoji.name;
 		const assignmentNumber = DiscordUtil.getNameOfEmoji(firstEmoji);
 		if (!assignmentNumber) {
