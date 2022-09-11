@@ -124,7 +124,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	}
 
 	if (emojiName === '⏭️') {
-		const nextEmojis = numberEmojis.emojis.slice(10, 15);
+		const nextEmojis = numberEmojis.emojis.slice(10, 20);
 		nextEmojis.forEach((emoji) => {
 			message.react(emoji);
 		});
@@ -136,7 +136,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	if (isStoredNumberEmoji) {
 		message.reactions.removeAll();
 		message.react(fullEmojiId);
-		await saveHomeworkToDB(message, cleanEmojiName, classCode);
+		await saveHomeworkToDB(message, emojiName, classCode);
 		return;
 	}
 
