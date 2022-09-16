@@ -1,9 +1,10 @@
 const AWS = require('aws-sdk');
 const path = require('path');
 
+const pathToJson = path.resolve(__dirname, '../aws_config.json');
+
 async function read(channelID, startDate, endDate, classCode) {
     try {
-        const pathToJson = path.resolve(__dirname, '../aws_config.json');
         AWS.config.loadFromPath(pathToJson);
         const ddb = new AWS.DynamoDB();
 
@@ -21,6 +22,7 @@ async function read(channelID, startDate, endDate, classCode) {
             TableName: 'BA-Homework'
         };
 
+        console.log(`Retrieving Homework: classCode ${classCode}, startDate ${startDate}, endDate ${endDate}`);
         const result = await ddb.query(params).promise();
         return result.Items;
     } catch (error) {
@@ -28,11 +30,8 @@ async function read(channelID, startDate, endDate, classCode) {
     }
 }
 
-// TODO: Modify this to async
 async function write(messageID, studentID, channelID, timestamp, type, classCode) {
     try {
-        let result;
-        const pathToJson = path.resolve(__dirname, '../aws_config.json');
         AWS.config.loadFromPath(pathToJson);
         const ddb = new AWS.DynamoDB();
 
@@ -47,19 +46,16 @@ async function write(messageID, studentID, channelID, timestamp, type, classCode
                 type: { S: type }
             }
         };
+
         console.log(`Adding Homework: messageID ${messageID}, studentID ${studentID}, channelID ${channelID}, timestamp${timestamp}, type${type}, classCode ${classCode}`);
-        return new Promise(resolve => {
-            ddb.putItem(params, (err, data) => {
-                if (err) {
-                    console.log('Error', err);
-                    result = false;
-                    resolve(result);
-                } else {
-                    console.log('Success', data);
-                    result = true;
-                    resolve(result);
-                }
-            });
+        return ddb.putItem(params, (err, data) => {
+            if (err) {
+                console.log('Error', err);
+                return false;
+            } else {
+                console.log('Success', data);
+                return true;
+            }
         });
     } catch (error) {
         console.log(error);
@@ -68,8 +64,6 @@ async function write(messageID, studentID, channelID, timestamp, type, classCode
 
 async function remove(messageID, classCode) {
     try {
-        let result;
-        const pathToJson = path.resolve(__dirname, '../aws_config.json');
         AWS.config.loadFromPath(pathToJson);
         const ddb = new AWS.DynamoDB();
 
@@ -80,19 +74,16 @@ async function remove(messageID, classCode) {
                 messageID: { S: messageID }
             }
         };
+
         console.log(`Removing Homework: messageID ${messageID}, classCode ${classCode}`);
-        return new Promise(resolve => {
-            ddb.deleteItem(params, (err, data) => {
-                if (err) {
-                    console.log('Error', err);
-                    result = false;
-                    resolve(result);
-                } else {
-                    console.log('Success', data);
-                    result = true;
-                    resolve(result);
-                }
-            });
+        return ddb.deleteItem(params, (err, data) => {
+            if (err) {
+                console.log('Error', err);
+                return false;
+            } else {
+                console.log('Success', data);
+                return true;
+            }
         });
     } catch (error) {
         console.log(error);

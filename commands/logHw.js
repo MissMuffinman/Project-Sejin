@@ -36,7 +36,7 @@ module.exports = {
                 .setRequired(false))
         .addStringOption(option =>
             option.setName('hw_description')
-                .setDescription("Description for each homework. Add 'number' to include the number. Eg: Assigment #'number'")
+                .setDescription('Description for each homework. Add [number] to include the number. Eg: Assigment #[number]')
                 .setRequired(false))
         .addBooleanOption(option =>
             option.setName('no_multiples')
@@ -50,7 +50,7 @@ module.exports = {
         const endTime = options.getString('end_time');
         const classCode = options.getString('class_code');
         const desc = options.getString('description') || '';
-        const hwDesc = options.getString('hw_description') || 'Assignment "number"';
+        const hwDesc = options.getString('hw_description') || 'Assignment [number]';
         const shouldNotAllowMultipleEntries = options.getBoolean('no_multiples');
 
         await interaction.deferReply();
@@ -73,62 +73,54 @@ module.exports = {
         const studentsIdsByHomeworkNumber = new Map();
 
         // Get information from the class using ClassCodeID
-        ClassDB.read(classCode)
-            .then((foundClass) => {
-                if (!foundClass) {
-                    return interaction.followUp(`Class code ${classCode} not found. <a:shookysad:949689086665437184>`);
-                }
-                const classInfo = {
-                    assignedRole: foundClass.roleID.S,
-                    channelID: foundClass.channelID.S,
-                    title: foundClass.title.S,
-                    img: foundClass.image_url.S,
-                    serverID: foundClass.serverID.S
-                };
+        const foundClass = await ClassDB.read(classCode);
+        if (!foundClass) {
+            return interaction.followUp(`Class code ${classCode} not found. <a:shookysad:949689086665437184>`);
+        }
+        const classInfo = {
+            assignedRole: foundClass.roleID.S,
+            channelID: foundClass.channelID.S,
+            title: foundClass.title.S,
+            img: foundClass.image_url.S,
+            serverID: foundClass.serverID.S
+        };
+        console.log('DATA FETCHED');
 
-                console.log('DATA FETCHED');
+        // get LogBookChannelID and GuildID of main server
+        const channel = await messageChannelDB.read(interaction.channel.id);
+        const messageChannelID = channel.channelID.S;
+        const messageChannelGuildID = channel.guildID.S;
+        const guild = interaction.client.guilds.cache.get(messageChannelGuildID);
+        const messageChannel = guild.channels.cache.get(messageChannelID);
 
-                // get LogBookChannelID and GuildID of main server
-                messageChannelDB.read(interaction.channel.id)
-                    .then((channel) => {
-                        const messageChannelID = channel.channelID.S;
-                        const messageChannelGuildID = channel.guildID.S;
-                        const guild = interaction.client.guilds.cache.get(messageChannelGuildID);
-                        const messageChannel = guild.channels.cache.get(messageChannelID);
+        // Search in the db for all the homework submitted and checked during a period of time
+        const homeworks = await HomeworkDB.read(classInfo.channelID, startDay, endDay, classCode);
+        console.log(homeworks);
+        const alreadyLoggedStudentIds = [];
+        homeworks.sort((a, b) => a.timestamp - b.timestamp).map((hw) => {
+            const hwNumber = hw.type.S;
+            const studentId = hw.studentID.S;
+            const hasStudentAlreadyBeenLogged = alreadyLoggedStudentIds.includes(studentId);
+            if (shouldNotAllowMultipleEntries && hasStudentAlreadyBeenLogged) {
+                return;
+            }
 
-                        // Search in the db for all the homework submitted and checked during a period of time
-                        HomeworkDB.read(classInfo.channelID, startDay, endDay, classCode)
-                            .then((homework) => {
-                                console.log(homework);
+            if (!(hwNumber in studentsIdsByHomeworkNumber)) {
+                studentsIdsByHomeworkNumber[hwNumber] = [];
+            }
 
-                                const alreadyLoggedStudentIds = [];
-                                homework.sort().reverse().map((hw) => {
-                                    const hwNumber = hw.type.S;
-                                    const studentId = hw.studentID.S;
-                                    const hasStudentAlreadyBeenLogged = alreadyLoggedStudentIds.includes(studentId);
-                                    if (shouldNotAllowMultipleEntries && hasStudentAlreadyBeenLogged) {
-                                        return;
-                                    }
+            studentsIdsByHomeworkNumber[hwNumber].push(studentId);
+            alreadyLoggedStudentIds.push(studentId);
+        });
 
-                                    if (!(hwNumber in studentsIdsByHomeworkNumber)) {
-                                        studentsIdsByHomeworkNumber[hwNumber] = [];
-                                    }
+        const totalHomeworks = Object.keys(studentsIdsByHomeworkNumber).length;
+        console.log('DATA FETCHED', totalHomeworks);
+        if (totalHomeworks === 0) {
+            return interaction.followUp('There was no homework submitted during this time period.');
+        }
 
-                                    studentsIdsByHomeworkNumber[hwNumber].push(studentId);
-                                    alreadyLoggedStudentIds.push(studentId);
-                                });
-
-                                const totalHomeworks = Object.keys(studentsIdsByHomeworkNumber).length;
-                                console.log('DATA FETCHED', totalHomeworks);
-                                if (totalHomeworks === 0) {
-                                    return interaction.followUp('There was no homework submitted during this time period.');
-                                }
-
-                                const logMessage = new HomeworkLogBook(messageChannel, classInfo, desc, totalHomeworks, hwDesc);
-                                logMessage.sendLogBookMessage(studentsIdsByHomeworkNumber);
-                                interaction.followUp('Logbook posted!');
-                            });
-                    });
-            });
+        const logMessage = new HomeworkLogBook(messageChannel, classInfo, desc, totalHomeworks, hwDesc);
+        logMessage.sendLogBookMessage(studentsIdsByHomeworkNumber);
+        interaction.followUp('Logbook posted!');
     }
 };

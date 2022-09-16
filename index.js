@@ -152,7 +152,7 @@ const saveHomeworkToDB = async (message, assignmentNumber, classCode) => {
 	const timestamp = DiscordUtil.getTimeForSavingHomework(message);
 
 	const result = await HomeworkDB.write(messageId, authorId, channelId, timestamp, assignmentNumber, classCode);
-	if (result === true) {
+	if (result) {
 		message.react('👍');
 	} else {
 		message.react('❌');
