@@ -96,14 +96,24 @@ module.exports = {
         const sID = classChannel.guild.id;
         console.log(sID);
 
+        const registerCode = () => {
+            console.log('INSERTING DATA INTO DATABASE');
+                    ClassDB.write(sID, roleID, channelIDs, classCode, classTitle, imageUrl, numberOfAssignments.toString());
+                    return interaction.followUp(`You set ${classCode} to be the class code for ${roleMention(roleID)} \nThe class title is: ${classTitle} \nThe class image is: ${imageUrl}`);
+        };
+
         ClassDB.getClassCodeByRoleID(roleID)
             .then((result) => {
                 if (result && result.classCode.S !== classCode) {
                     return interaction.followUp(`There's already class code ${result.classCode.S} with this role assigned!`);
                 } else {
-                    console.log('INSERTING DATA INTO DATABASE');
-                    ClassDB.write(sID, roleID, channelIDs, classCode, classTitle, imageUrl, numberOfAssignments.toString());
-                    return interaction.followUp('You set ' + classCode + ' to be the class code for ' + roleMention(roleID) + '\n The class title is: ' + classTitle + '\nThe class image is: ' + imageUrl);
+                    ClassDB.read(classCode).then((codeResult) => {
+                        if (!codeResult) {
+                            return registerCode();
+                        }
+                        const className = codeResult.title.S;
+                        return interaction.followUp(`There's already class code ${classCode} registered for ${className}!`);
+                    });
                 }
             });
     }
