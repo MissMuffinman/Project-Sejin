@@ -55,8 +55,8 @@ module.exports = {
 
         await interaction.deferReply();
 
-        if (classCode.length >= 7) {
-            return interaction.followUp('Class Code should have 6 characters.');
+        if (classCode.length > 7) {
+            return interaction.followUp('Class Code should have 6/7 characters.');
         }
 
         const dateValid = new DateValidator();
